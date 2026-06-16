@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 
 const invoiceController = require('../controllers/invoice.controller');
+const auth = require('../middleware/auth.middleware');
 
-router.post('/', invoiceController.createInvoice);
-router.get('/:id', invoiceController.getInvoice);
-router.get('/', invoiceController.getAllInvoices);
+// PROTECTED ROUTES
+router.post('/', auth.verifyToken, invoiceController.createInvoice);
+router.get('/:id', auth.verifyToken, invoiceController.getInvoice);
+router.get('/', auth.verifyToken, invoiceController.getAllInvoices);
 
 module.exports = router;

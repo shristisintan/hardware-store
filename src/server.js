@@ -16,13 +16,11 @@ app.get('/', (req, res) => {
 });
 
 const PORT = 3000;
-
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
 
 const invoiceRoutes = require('./routes/invoice.routes');
-
 app.use('/api/invoices', invoiceRoutes);
 
 const invoiceItemRoutes = require('./routes/invoiceItem.routes');
@@ -33,3 +31,7 @@ app.use('/api/discounts', discountRoutes);
 
 const authRoutes = require('./routes/auth.routes');
 app.use('/api/auth', authRoutes);
+
+const dashboardRoutes = require('./routes/dashboard.routes');
+app.use('/api/dashboard', dashboardRoutes);
+
