@@ -1,6 +1,6 @@
 const db = require('../config/db');
 
-// CREATE INVOICE (bill header)
+// CREATE INVOICE
 exports.createInvoice = async (req, res) => {
     const { user_id, customer_id } = req.body;
 
@@ -8,8 +8,11 @@ exports.createInvoice = async (req, res) => {
         const invoiceNo = 'INV-' + Date.now();
 
         const [result] = await db.execute(
-            `INSERT INTO invoices (invoice_no, user_id, customer_id)
-             VALUES (?, ?, ?)`,
+            `INSERT INTO invoices (
+                invoice_no,
+                user_id,
+                customer_id
+            ) VALUES (?, ?, ?)`,
             [invoiceNo, user_id, customer_id || null]
         );
 
@@ -20,40 +23,58 @@ exports.createInvoice = async (req, res) => {
         });
 
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({
+            error: err.message
+        });
     }
 };
 
+// GET SINGLE INVOICE
 exports.getInvoice = async (req, res) => {
     const invoiceId = req.params.id;
 
     try {
-        // get invoice
-        const [invoice] = await db.execute(
+        const [invoiceRows] = await db.execute(
             'SELECT * FROM invoices WHERE id = ?',
             [invoiceId]
         );
 
-        if (invoice.length === 0) {
-            return res.status(404).json({ message: 'Invoice not found' });
+        if (invoiceRows.length === 0) {
+            return res.status(404).json({
+                message: 'Invoice not found'
+            });
         }
 
-        // get items (empty for now, we will use later)
+        const invoice = invoiceRows[0];
+
         const [items] = await db.execute(
-            'SELECT * FROM invoice_items WHERE invoice_id = ?',
+            `SELECT
+                ii.id,
+                ii.product_id,
+                p.name,
+                ii.quantity,
+                ii.price,
+                ii.total
+             FROM invoice_items ii
+             JOIN products p
+                ON ii.product_id = p.id
+             WHERE ii.invoice_id = ?`,
             [invoiceId]
         );
 
         res.json({
-            invoice: invoice[0],
-            items: items
+            invoice,
+            items
         });
 
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({
+            error: err.message
+        });
     }
 };
 
+// GET ALL INVOICES
 exports.getAllInvoices = async (req, res) => {
     try {
         const [rows] = await db.execute(
@@ -63,6 +84,8 @@ exports.getAllInvoices = async (req, res) => {
         res.json(rows);
 
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({
+            error: err.message
+        });
     }
 };

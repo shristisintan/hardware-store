@@ -24,3 +24,12 @@ app.listen(PORT, () => {
 const invoiceRoutes = require('./routes/invoice.routes');
 
 app.use('/api/invoices', invoiceRoutes);
+
+const invoiceItemRoutes = require('./routes/invoiceItem.routes');
+app.use('/api/invoice-items', invoiceItemRoutes);
+
+const discountRoutes = require('./routes/discount.routes');
+app.use('/api/discounts', discountRoutes);
+
+const authRoutes = require('./routes/auth.routes');
+app.use('/api/auth', authRoutes);
