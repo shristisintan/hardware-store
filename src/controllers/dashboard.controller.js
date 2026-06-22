@@ -6,7 +6,8 @@ exports.getTodaySales = async (req, res) => {
         const [rows] = await db.execute(
             `SELECT COALESCE(SUM(grand_total), 0) AS totalSales
              FROM invoices
-             WHERE DATE(created_at) = CURDATE()`
+             WHERE DATE(created_at) = CURDATE()
+             AND is_cancelled = 0`
         );
 
         res.json(rows[0]);
@@ -34,7 +35,7 @@ exports.getTodayInvoices = async (req, res) => {
 exports.getStockValue = async (req, res) => {
     try {
         const [rows] = await db.execute(
-            `SELECT COALESCE(SUM(stock * selling_price), 0) AS stockValue
+            `SELECT COALESCE(SUM(stock * purchase_price), 0) AS stockValue
              FROM products`
         );
 
@@ -53,7 +54,7 @@ exports.getTopProducts = async (req, res) => {
                 SUM(ii.quantity) AS totalSold
              FROM invoice_items ii
              JOIN products p ON p.id = ii.product_id
-             GROUP BY ii.product_id
+             GROUP BY ii.product_id, p.name
              ORDER BY totalSold DESC
              LIMIT 5`
         );

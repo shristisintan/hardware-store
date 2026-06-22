@@ -1,17 +1,67 @@
 const db = require('../config/db');
 
+
 exports.addItem = async (req, res) => {
+
+    const [inv] = await db.execute(
+    `SELECT is_finalized, is_cancelled FROM invoices WHERE id = ?`,
+    [invoice_id]
+);
+
+if (inv[0]?.is_cancelled == 1) {
+    return res.status(400).json({
+        message: "Invoice is cancelled. No changes allowed."
+    });
+}
+
+if (inv[0]?.is_finalized == 1) {
+    return res.status(400).json({
+        message: "Invoice is finalized. No changes allowed."
+    });
+}
+
+if (inv[0]?.is_cancelled == 1) {
+    return res.status(400).json({
+        message: "Invoice is cancelled. No changes allowed."
+    });
+}
     const { invoice_id, product_id, quantity, selling_price } = req.body;
 
     try {
-        // validation
         if (!invoice_id || !product_id || !quantity || !selling_price) {
             return res.status(400).json({
                 message: 'All fields are required'
             });
         }
 
-        // get product
+        // 1. CHECK INVOICE STATUS FIRST (VERY IMPORTANT)
+        const [invoiceCheck] = await db.execute(
+            `SELECT is_finalized, discount_percentage
+             FROM invoices
+             WHERE id = ?`,
+            [invoice_id]
+        );
+
+        if (invoiceCheck.length === 0) {
+            return res.status(404).json({
+                message: "Invoice not found"
+            });
+        }
+
+        if (invoiceCheck[0].is_finalized == 1) {
+            return res.status(400).json({
+                message: "Invoice is finalized. Cannot add items."
+            });
+        }
+
+        // OPTIONAL RULE (if you want strict system)
+        if (invoiceCheck[0].discount_percentage > 0) {
+            return res.status(400).json({
+                message: "Cannot add items after discount is applied"
+            });
+        }
+
+        // 2. GET PRODUCT
         const [products] = await db.execute(
             'SELECT * FROM products WHERE id = ?',
             [product_id]
@@ -25,7 +75,7 @@ exports.addItem = async (req, res) => {
 
         const product = products[0];
 
-        // stock check
+        // 3. STOCK CHECK
         if (product.stock < quantity) {
             return res.status(400).json({
                 message: 'Insufficient stock'
@@ -34,7 +84,7 @@ exports.addItem = async (req, res) => {
 
         const total = Number(selling_price) * Number(quantity);
 
-        // insert invoice item
+        // 4. INSERT ITEM
         await db.execute(
             `INSERT INTO invoice_items
             (invoice_id, product_id, quantity, price, total)
@@ -42,7 +92,7 @@ exports.addItem = async (req, res) => {
             [invoice_id, product_id, quantity, selling_price, total]
         );
 
-        // reduce stock
+        // 5. REDUCE STOCK
         await db.execute(
             `UPDATE products
              SET stock = stock - ?
@@ -50,7 +100,7 @@ exports.addItem = async (req, res) => {
             [quantity, product_id]
         );
 
-        // recalc invoice total
+        // 6. RECALCULATE TOTAL
         const [totals] = await db.execute(
             `SELECT COALESCE(SUM(total), 0) AS totalAmount
              FROM invoice_items
@@ -60,28 +110,29 @@ exports.addItem = async (req, res) => {
 
         const totalAmount = Number(totals[0].totalAmount);
 
-        // discount
-        const [invoiceRows] = await db.execute(
-            `SELECT discount FROM invoices WHERE id = ?`,
-            [invoice_id]
-        );
+        // 7. GET DISCOUNT
+        const discountPercentage = Number(invoiceCheck[0].discount_percentage || 0);
 
-        const discount = Number(invoiceRows[0]?.discount || 0);
+        const discountAmount = (totalAmount * discountPercentage) / 100;
 
-        // update invoice
+        const grandTotal = totalAmount - discountAmount;
+
+        // 8. UPDATE INVOICE
         await db.execute(
             `UPDATE invoices
              SET total_amount = ?,
+                 discount_amount = ?,
                  grand_total = ?
              WHERE id = ?`,
-            [totalAmount, totalAmount - discount, invoice_id]
+            [totalAmount, discountAmount, grandTotal, invoice_id]
         );
 
         res.json({
             message: 'Item added successfully',
-            total,
+            item_total: total,
             invoice_total: totalAmount,
-            grand_total: totalAmount - discount
+            discount_amount: discountAmount,
+            grand_total: grandTotal
         });
 
     } catch (err) {
