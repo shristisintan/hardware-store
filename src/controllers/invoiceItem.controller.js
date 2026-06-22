@@ -1,107 +1,105 @@
 const db = require('../config/db');
 
-
 exports.addItem = async (req, res) => {
-
-    const [inv] = await db.execute(
-    `SELECT is_finalized, is_cancelled FROM invoices WHERE id = ?`,
-    [invoice_id]
-);
-
-if (inv[0]?.is_cancelled == 1) {
-    return res.status(400).json({
-        message: "Invoice is cancelled. No changes allowed."
-    });
-}
-
-if (inv[0]?.is_finalized == 1) {
-    return res.status(400).json({
-        message: "Invoice is finalized. No changes allowed."
-    });
-}
-
-if (inv[0]?.is_cancelled == 1) {
-    return res.status(400).json({
-        message: "Invoice is cancelled. No changes allowed."
-    });
-}
-    const { invoice_id, product_id, quantity, selling_price } = req.body;
+    const connection = await db.getConnection();
 
     try {
+        await connection.beginTransaction();
+
+        const { invoice_id, product_id, quantity, selling_price } = req.body;
+
+        // -------------------------
+        // 1. VALIDATION
+        // -------------------------
         if (!invoice_id || !product_id || !quantity || !selling_price) {
+            await connection.rollback();
             return res.status(400).json({
-                message: 'All fields are required'
+                message: "All fields are required"
             });
         }
 
-        // 1. CHECK INVOICE STATUS FIRST (VERY IMPORTANT)
-        const [invoiceCheck] = await db.execute(
-            `SELECT is_finalized, discount_percentage
+        // -------------------------
+        // 2. CHECK INVOICE STATUS
+        // -------------------------
+        const [invoiceRows] = await connection.execute(
+            `SELECT is_finalized, is_cancelled, discount_amount
              FROM invoices
              WHERE id = ?`,
             [invoice_id]
         );
 
-        if (invoiceCheck.length === 0) {
+        if (!invoiceRows.length) {
+            await connection.rollback();
             return res.status(404).json({
                 message: "Invoice not found"
             });
         }
 
-        if (invoiceCheck[0].is_finalized == 1) {
+        const invoice = invoiceRows[0];
+
+        if (invoice.is_finalized == 1 || invoice.is_cancelled == 1) {
+            await connection.rollback();
             return res.status(400).json({
-                message: "Invoice is finalized. Cannot add items."
+                message: "Invoice is locked (finalized/cancelled)"
             });
         }
 
-        // OPTIONAL RULE (if you want strict system)
-        if (invoiceCheck[0].discount_percentage > 0) {
-            return res.status(400).json({
-                message: "Cannot add items after discount is applied"
-            });
-        }
-
-        // 2. GET PRODUCT
-        const [products] = await db.execute(
-            'SELECT * FROM products WHERE id = ?',
+        // -------------------------
+        // 3. GET PRODUCT
+        // -------------------------
+        const [productRows] = await connection.execute(
+            `SELECT * FROM products WHERE id = ?`,
             [product_id]
         );
 
-        if (products.length === 0) {
+        if (!productRows.length) {
+            await connection.rollback();
             return res.status(404).json({
-                message: 'Product not found'
+                message: "Product not found"
             });
         }
 
-        const product = products[0];
+        const product = productRows[0];
 
-        // 3. STOCK CHECK
-        if (product.stock < quantity) {
+        // -------------------------
+        // 4. STOCK CHECK
+        // -------------------------
+        const qty = Number(quantity);
+
+        if (product.stock < qty) {
+            await connection.rollback();
             return res.status(400).json({
-                message: 'Insufficient stock'
+                message: "Insufficient stock"
             });
         }
 
-        const total = Number(selling_price) * Number(quantity);
+        const price = Number(selling_price);
+        const total = price * qty;
 
-        // 4. INSERT ITEM
-        await db.execute(
+        // -------------------------
+        // 5. INSERT ITEM
+        // -------------------------
+        await connection.execute(
             `INSERT INTO invoice_items
-            (invoice_id, product_id, quantity, price, total)
-            VALUES (?, ?, ?, ?, ?)`,
-            [invoice_id, product_id, quantity, selling_price, total]
+             (invoice_id, product_id, quantity, price, total)
+             VALUES (?, ?, ?, ?, ?)`,
+            [invoice_id, product_id, qty, price, total]
         );
 
-        // 5. REDUCE STOCK
-        await db.execute(
+        // -------------------------
+        // 6. UPDATE STOCK
+        // -------------------------
+        await connection.execute(
             `UPDATE products
              SET stock = stock - ?
              WHERE id = ?`,
-            [quantity, product_id]
+            [qty, product_id]
         );
 
-        // 6. RECALCULATE TOTAL
-        const [totals] = await db.execute(
+        // -------------------------
+        // 7. RECALCULATE TOTAL
+        // -------------------------
+        const [totals] = await connection.execute(
             `SELECT COALESCE(SUM(total), 0) AS totalAmount
              FROM invoice_items
              WHERE invoice_id = ?`,
@@ -110,25 +108,28 @@ if (inv[0]?.is_cancelled == 1) {
 
         const totalAmount = Number(totals[0].totalAmount);
 
-        // 7. GET DISCOUNT
-        const discountPercentage = Number(invoiceCheck[0].discount_percentage || 0);
-
-        const discountAmount = (totalAmount * discountPercentage) / 100;
+        const discountAmount = Number(invoice.discount_amount || 0);
 
         const grandTotal = totalAmount - discountAmount;
 
+        // -------------------------
         // 8. UPDATE INVOICE
-        await db.execute(
+        // -------------------------
+        await connection.execute(
             `UPDATE invoices
              SET total_amount = ?,
-                 discount_amount = ?,
                  grand_total = ?
              WHERE id = ?`,
-            [totalAmount, discountAmount, grandTotal, invoice_id]
+            [totalAmount, grandTotal, invoice_id]
         );
 
-        res.json({
-            message: 'Item added successfully',
+        // -------------------------
+        // 9. COMMIT
+        // -------------------------
+        await connection.commit();
+
+        return res.json({
+            message: "Item added successfully",
             item_total: total,
             invoice_total: totalAmount,
             discount_amount: discountAmount,
@@ -136,8 +137,11 @@ if (inv[0]?.is_cancelled == 1) {
         });
 
     } catch (err) {
-        res.status(500).json({
+        await connection.rollback();
+        return res.status(500).json({
             error: err.message
         });
+    } finally {
+        connection.release();
     }
 };

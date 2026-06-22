@@ -36,9 +36,20 @@ exports.getInvoice = async (req, res) => {
 
     try {
         const [invoiceRows] = await db.execute(
-            'SELECT * FROM invoices WHERE id = ?',
-            [invoiceId]
-        );
+    `SELECT
+        i.*,
+        c.name AS customer_name,
+        c.phone AS customer_phone,
+        c.address AS customer_address,
+        u.name AS prepared_by
+     FROM invoices i
+     LEFT JOIN customers c
+        ON i.customer_id = c.id
+     LEFT JOIN users u
+        ON i.user_id = u.id
+     WHERE i.id = ?`,
+    [invoiceId]
+);
 
         if (invoiceRows.length === 0) {
             return res.status(404).json({

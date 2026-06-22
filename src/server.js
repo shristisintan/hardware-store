@@ -15,6 +15,7 @@ const invoiceItemRoutes = require('./routes/invoiceItem.routes');
 const discountRoutes = require('./routes/discount.routes');
 const authRoutes = require('./routes/auth.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
+const customerRoutes = require('./routes/customer.routes');
 
 
 app.use('/api/products', productRoutes);
@@ -23,6 +24,7 @@ app.use('/api/invoice-items', invoiceItemRoutes);
 app.use('/api/discounts', discountRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/customers', customerRoutes);
 
 const profitRoutes = require('./routes/profit.routes');
 
