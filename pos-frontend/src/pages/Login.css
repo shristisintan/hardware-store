@@ -1,0 +1,251 @@
+* {
+  box-sizing: border-box;
+}
+
+/* =========================
+   PAGE
+========================= */
+.login-page {
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+
+  background: #f8fafc;
+
+  opacity: 0;
+  transform: translateY(10px);
+  transition: 0.7s ease;
+}
+
+.login-page.loaded {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* =========================
+   LEFT PANEL (BRAND SIDE FIXED)
+========================= */
+.login-brand-panel {
+  padding: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  position: relative;
+  overflow: hidden;
+
+  /* richer professional contrast */
+  background: linear-gradient(135deg, #1e3a8a, #0f172a);
+}
+
+/* glow */
+.login-brand-panel::before {
+  content: "";
+  position: absolute;
+  width: 650px;
+  height: 650px;
+
+  background: rgba(59, 130, 246, 0.28);
+  filter: blur(130px);
+
+  top: -200px;
+  left: -200px;
+
+  animation: floatGlow 8s ease-in-out infinite;
+}
+
+@keyframes floatGlow {
+  0% { transform: translate(0, 0); opacity: 0.6; }
+  50% { transform: translate(60px, 40px); opacity: 1; }
+  100% { transform: translate(0, 0); opacity: 0.6; }
+}
+
+/* =========================
+   BRAND TEXT
+========================= */
+.brand-icon {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+
+  border-radius: 14px;
+
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.2);
+
+  margin-bottom: 20px;
+
+  color: #ffffff;
+}
+
+.eyebrow {
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.7);
+  margin: 0;
+}
+
+/* SHOVA STORES (HERO TEXT) */
+.brand-title {
+  font-size: 72px;
+  font-weight: 900;
+  margin: 6px 0;
+  letter-spacing: -1.5px;
+  line-height: 1.05;
+
+  color: #ffffff;
+}
+
+/* Billing Desk (sub text smaller) */
+.brand-sub {
+  font-size: 16px;
+  color: rgba(255,255,255,0.75);
+  font-weight: 500;
+}
+
+/* =========================
+   STATS (FIXED ROW LAYOUT)
+========================= */
+.stats {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.stat {
+  flex: 1;
+  min-width: 130px;
+
+  padding: 14px;
+  border-radius: 12px;
+
+  background: rgba(255,255,255,0.10);
+  backdrop-filter: blur(10px);
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  color: #ffffff;
+}
+
+.stat svg {
+  opacity: 0.9;
+  color: #ffffff;
+}
+
+.stat strong {
+  font-size: 14px;
+  color: #ffffff;
+}
+
+/* =========================
+   RIGHT PANEL
+========================= */
+.login-form-panel {
+  display: grid;
+  place-items: center;
+
+  background: #f8fafc;
+}
+
+/* LOGIN CARD */
+.login-card {
+  width: 360px;
+  padding: 34px;
+
+  border-radius: 18px;
+
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.08);
+
+  transform: translateY(20px);
+  opacity: 0;
+  animation: popIn 0.7s ease forwards;
+}
+
+@keyframes popIn {
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* =========================
+   FORM TEXT
+========================= */
+.form-title {
+  font-size: 26px;
+  font-weight: 700;
+  margin: 0;
+  color: #0f172a;
+}
+
+.form-subtitle {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 18px;
+}
+
+/* =========================
+   FORM
+========================= */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* =========================
+   BUTTON
+========================= */
+.btn {
+  background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+  color: #ffffff !important;
+
+  padding: 14px 16px;
+  border-radius: 14px;
+
+  font-weight: 700;
+  font-size: 15px;
+
+  text-transform: none;
+
+  box-shadow: 0 14px 30px rgba(37, 99, 235, 0.25);
+
+  transition: all 0.25s ease;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 40px rgba(37, 99, 235, 0.35);
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+/* =========================
+   MOBILE
+========================= */
+@media (max-width: 900px) {
+  .login-page {
+    grid-template-columns: 1fr;
+  }
+
+  .login-brand-panel {
+    display: none;
+  }
+
+  .login-card {
+    width: 90%;
+  }
+}
