@@ -7,6 +7,7 @@ const invoiceMiddleware = require('../middleware/invoice.middleware');
 
 router.post(
     '/add',
+    auth.verifyToken,
     invoiceMiddleware.checkInvoiceExists,
     invoiceMiddleware.checkInvoiceNotLocked,
     invoiceItemController.addItem

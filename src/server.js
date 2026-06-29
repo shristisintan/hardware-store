@@ -27,6 +27,9 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/customers', customerRoutes);
 
 const profitRoutes = require('./routes/profit.routes');
+const receiptRoutes = require('./routes/receipt.routes');
+
+app.use('/api/receipts', receiptRoutes);
 
 app.use('/api/profit', profitRoutes);
 
@@ -34,6 +37,8 @@ app.use('/api/profit', profitRoutes);
 app.get('/', (req, res) => {
     res.send('Hardware Store API running');
 });
+
+
 
 const PORT = process.env.PORT || 3000;
 

@@ -8,7 +8,9 @@ exports.totalProfit = async (req, res) => {
                 (ii.price - p.purchase_price) * ii.quantity
             ), 0) AS total_profit
             FROM invoice_items ii
-            JOIN products p ON p.id = ii.product_id`
+            JOIN products p ON p.id = ii.product_id
+            JOIN invoices i ON i.id = ii.invoice_id
+            WHERE i.is_cancelled = 0`
         );
 
         res.json(rows[0]);
@@ -28,7 +30,9 @@ exports.profitPerInvoice = async (req, res) => {
             ), 0) AS invoice_profit
             FROM invoice_items ii
             JOIN products p ON p.id = ii.product_id
-            WHERE ii.invoice_id = ?`,
+            JOIN invoices i ON i.id = ii.invoice_id
+            WHERE ii.invoice_id = ?
+            AND i.is_cancelled = 0`,
             [id]
         );
 
@@ -47,6 +51,8 @@ exports.topProfitProducts = async (req, res) => {
                 SUM((ii.price - p.purchase_price) * ii.quantity) AS profit
             FROM invoice_items ii
             JOIN products p ON p.id = ii.product_id
+            JOIN invoices i ON i.id = ii.invoice_id
+            WHERE i.is_cancelled = 0
             GROUP BY ii.product_id, p.name
             ORDER BY profit DESC
             LIMIT 5`

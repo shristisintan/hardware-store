@@ -12,6 +12,16 @@ exports.createProduct = async (req, res) => {
             });
         }
 
+        if (
+            typeof name !== 'string' ||
+            typeof category !== 'string' ||
+            typeof unit !== 'string'
+        ) {
+            return res.status(400).json({
+                message: 'Name, category, and unit must be text'
+            });
+        }
+
         name = name.trim();
         category = category.trim();
         unit = unit.trim();

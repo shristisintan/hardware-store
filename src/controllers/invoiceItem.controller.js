@@ -6,23 +6,47 @@ exports.addItem = async (req, res) => {
     try {
         await connection.beginTransaction();
 
-        const { invoice_id, product_id, quantity, selling_price } = req.body;
+        let { invoice_id, product_id, quantity, selling_price } = req.body;
 
-        // -------------------------
+        // =========================
         // 1. VALIDATION
-        // -------------------------
+        // =========================
         if (!invoice_id || !product_id || !quantity || !selling_price) {
             await connection.rollback();
             return res.status(400).json({
-                message: "All fields are required"
+                message: "invoice_id, product_id, quantity, selling_price are required"
             });
         }
 
-        // -------------------------
-        // 2. CHECK INVOICE STATUS
-        // -------------------------
+        quantity = Number(quantity);
+        selling_price = Number(selling_price);
+
+        if (Number.isNaN(quantity) || Number.isNaN(selling_price)) {
+            await connection.rollback();
+            return res.status(400).json({
+                message: "Quantity and selling price must be numbers"
+            });
+        }
+
+        if (quantity <= 0) {
+            await connection.rollback();
+            return res.status(400).json({
+                message: "Quantity must be greater than 0"
+            });
+        }
+
+        if (selling_price <= 0) {
+            await connection.rollback();
+            return res.status(400).json({
+                message: "Selling price must be greater than 0"
+            });
+        }
+
+        // =========================
+        // 2. CHECK INVOICE
+        // =========================
         const [invoiceRows] = await connection.execute(
-            `SELECT is_finalized, is_cancelled, discount_amount
+            `SELECT is_finalized, is_cancelled, discount_amount, paid_amount
              FROM invoices
              WHERE id = ?`,
             [invoice_id]
@@ -30,75 +54,67 @@ exports.addItem = async (req, res) => {
 
         if (!invoiceRows.length) {
             await connection.rollback();
-            return res.status(404).json({
-                message: "Invoice not found"
-            });
+            return res.status(404).json({ message: "Invoice not found" });
         }
 
         const invoice = invoiceRows[0];
 
-        if (invoice.is_finalized == 1 || invoice.is_cancelled == 1) {
+        if (invoice.is_finalized || invoice.is_cancelled) {
             await connection.rollback();
             return res.status(400).json({
-                message: "Invoice is locked (finalized/cancelled)"
+                message: "Invoice is locked"
             });
         }
 
-        // -------------------------
-        // 3. GET PRODUCT
-        // -------------------------
+        // =========================
+        // 3. CHECK PRODUCT + STOCK
+        // =========================
         const [productRows] = await connection.execute(
-            `SELECT * FROM products WHERE id = ?`,
+            `SELECT id, stock, name
+             FROM products
+             WHERE id = ?`,
             [product_id]
         );
 
         if (!productRows.length) {
             await connection.rollback();
-            return res.status(404).json({
-                message: "Product not found"
-            });
+            return res.status(404).json({ message: "Product not found" });
         }
 
         const product = productRows[0];
 
-        // -------------------------
-        // 4. STOCK CHECK
-        // -------------------------
-        const qty = Number(quantity);
+        // =========================
+        // 4. SAFE STOCK DEDUCTION (IMPORTANT FIX)
+        // =========================
+        const [stockUpdate] = await connection.execute(
+            `UPDATE products
+             SET stock = stock - ?
+             WHERE id = ? AND stock >= ?`,
+            [quantity, product_id, quantity]
+        );
 
-        if (product.stock < qty) {
+        if (stockUpdate.affectedRows === 0) {
             await connection.rollback();
             return res.status(400).json({
-                message: "Insufficient stock"
+                message: `Insufficient stock for ${product.name}`
             });
         }
 
-        const price = Number(selling_price);
-        const total = price * qty;
-
-        // -------------------------
+        // =========================
         // 5. INSERT ITEM
-        // -------------------------
+        // =========================
+        const total = quantity * selling_price;
+
         await connection.execute(
             `INSERT INTO invoice_items
              (invoice_id, product_id, quantity, price, total)
              VALUES (?, ?, ?, ?, ?)`,
-            [invoice_id, product_id, qty, price, total]
+            [invoice_id, product_id, quantity, selling_price, total]
         );
 
-        // -------------------------
-        // 6. UPDATE STOCK
-        // -------------------------
-        await connection.execute(
-            `UPDATE products
-             SET stock = stock - ?
-             WHERE id = ?`,
-            [qty, product_id]
-        );
-
-        // -------------------------
-        // 7. RECALCULATE TOTAL
-        // -------------------------
+        // =========================
+        // 6. RECALCULATE TOTAL
+        // =========================
         const [totals] = await connection.execute(
             `SELECT COALESCE(SUM(total), 0) AS totalAmount
              FROM invoice_items
@@ -107,33 +123,49 @@ exports.addItem = async (req, res) => {
         );
 
         const totalAmount = Number(totals[0].totalAmount);
+        const discount = Number(invoice.discount_amount || 0);
+        const paid = Number(invoice.paid_amount || 0);
 
-        const discountAmount = Number(invoice.discount_amount || 0);
+        if (discount > totalAmount) {
+            await connection.rollback();
+            return res.status(400).json({
+                message: "Invalid discount greater than total"
+            });
+        }
 
-        const grandTotal = totalAmount - discountAmount;
+        const grandTotal = totalAmount - discount;
+        const dueAmount = Math.max(grandTotal - paid, 0);
+        let paymentStatus = "CREDIT";
 
-        // -------------------------
-        // 8. UPDATE INVOICE
-        // -------------------------
+        if (paid === 0) paymentStatus = "CREDIT";
+        else if (paid < grandTotal) paymentStatus = "PARTIAL";
+        else paymentStatus = "PAID";
+
+        // =========================
+        // 7. UPDATE INVOICE
+        // =========================
         await connection.execute(
             `UPDATE invoices
              SET total_amount = ?,
-                 grand_total = ?
+                 grand_total = ?,
+                 due_amount = ?,
+                 payment_status = ?
              WHERE id = ?`,
-            [totalAmount, grandTotal, invoice_id]
+            [totalAmount, grandTotal, dueAmount, paymentStatus, invoice_id]
         );
 
-        // -------------------------
-        // 9. COMMIT
-        // -------------------------
+        // =========================
+        // 8. COMMIT
+        // =========================
         await connection.commit();
 
         return res.json({
             message: "Item added successfully",
             item_total: total,
             invoice_total: totalAmount,
-            discount_amount: discountAmount,
-            grand_total: grandTotal
+            grand_total: grandTotal,
+            due_amount: dueAmount,
+            payment_status: paymentStatus
         });
 
     } catch (err) {

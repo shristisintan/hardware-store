@@ -1,66 +1,94 @@
 const db = require('../config/db');
 
-// 1. Total sales today
-exports.getTodaySales = async (req, res) => {
+// ===============================
+// FULL DASHBOARD API
+// ===============================
+exports.getDashboard = async (req, res) => {
     try {
-        const [rows] = await db.execute(
+
+        // =========================
+        // 1. TODAY SALES
+        // =========================
+        const [sales] = await db.execute(
             `SELECT COALESCE(SUM(grand_total), 0) AS totalSales
              FROM invoices
-             WHERE DATE(created_at) = CURDATE()
+             WHERE created_at >= CURDATE()
+             AND created_at < CURDATE() + INTERVAL 1 DAY
              AND is_cancelled = 0`
         );
 
-        res.json(rows[0]);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-};
-
-// 2. Total invoices today
-exports.getTodayInvoices = async (req, res) => {
-    try {
-        const [rows] = await db.execute(
+        // =========================
+        // 2. TODAY INVOICES
+        // =========================
+        const [invoices] = await db.execute(
             `SELECT COUNT(*) AS totalInvoices
              FROM invoices
-             WHERE DATE(created_at) = CURDATE()`
+             WHERE created_at >= CURDATE()
+             AND created_at < CURDATE() + INTERVAL 1 DAY
+             AND is_cancelled = 0`
         );
 
-        res.json(rows[0]);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-};
-
-// 3. Total stock value
-exports.getStockValue = async (req, res) => {
-    try {
-        const [rows] = await db.execute(
+        // =========================
+        // 3. STOCK VALUE
+        // =========================
+        const [stockValue] = await db.execute(
             `SELECT COALESCE(SUM(stock * purchase_price), 0) AS stockValue
              FROM products`
         );
 
-        res.json(rows[0]);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-};
-
-// 4. Top selling products
-exports.getTopProducts = async (req, res) => {
-    try {
-        const [rows] = await db.execute(
+        // =========================
+        // 4. TOP PRODUCTS
+        // =========================
+        const [topProducts] = await db.execute(
             `SELECT 
+                p.id,
                 p.name,
                 SUM(ii.quantity) AS totalSold
              FROM invoice_items ii
              JOIN products p ON p.id = ii.product_id
-             GROUP BY ii.product_id, p.name
+             JOIN invoices i ON i.id = ii.invoice_id
+             WHERE i.is_cancelled = 0
+             GROUP BY ii.product_id, p.id, p.name
              ORDER BY totalSold DESC
              LIMIT 5`
         );
 
-        res.json(rows);
+        // =========================
+        // 5. LOW STOCK ALERTS
+        // =========================
+        const [lowStock] = await db.execute(
+            `SELECT 
+                id AS product_id,
+                name,
+                stock,
+                COALESCE(low_stock_limit, 5) AS low_stock_limit,
+                CASE 
+                    WHEN stock = 0 THEN 'OUT_OF_STOCK'
+                    WHEN stock <= 2 THEN 'CRITICAL'
+                    ELSE 'LOW'
+                END AS status
+             FROM products
+             WHERE stock <= COALESCE(low_stock_limit, 5)
+             ORDER BY stock ASC`
+        );
+
+        // =========================
+        // RESPONSE
+        // =========================
+        res.json({
+            today_sales: sales[0].totalSales,
+            today_invoices: invoices[0].totalInvoices,
+            stock_value: stockValue[0].stockValue,
+            top_products: topProducts,
+            low_stock_alerts: {
+                total_alerts: lowStock.length,
+                items: lowStock
+            }
+        });
+
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({
+            error: err.message
+        });
     }
 };

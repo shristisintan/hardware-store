@@ -74,18 +74,38 @@ exports.login = async (req, res) => {
 
         // 10. Response
         res.json({
-            message: 'Login successful',
-            token,
-            user: {
-                id: user.id,
-                name: user.name,
-                username: user.username,
-                role: user.role
-            }
-        });
+    success: true,
+    message: 'Login successful',
+    data: {
+        token,
+        user: {
+            id: user.id,
+            name: user.name,
+            username: user.username,
+            role: user.role
+        }
+    }
+});
 
     } catch (err) {
         res.status(500).json({
+            error: err.message
+        });
+    }
+};
+
+exports.me = async (req, res) => {
+    try {
+        // req.user comes from JWT middleware
+        res.json({
+            success: true,
+            message: 'User fetched successfully',
+            data: req.user
+        });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch user',
             error: err.message
         });
     }
