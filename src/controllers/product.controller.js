@@ -1,11 +1,13 @@
 const db = require('../config/db');
 
-// CREATE PRODUCT (ONLY COST PRICE)
+// ===============================
+// CREATE PRODUCT
+// ===============================
 exports.createProduct = async (req, res) => {
     let { name, category, purchase_price, stock, unit } = req.body;
 
     try {
-        // validation
+        // Validation
         if (!name || !category || purchase_price == null || stock == null || !unit) {
             return res.status(400).json({
                 message: 'All fields are required'
@@ -18,7 +20,7 @@ exports.createProduct = async (req, res) => {
             typeof unit !== 'string'
         ) {
             return res.status(400).json({
-                message: 'Name, category, and unit must be text'
+                message: 'Name, category and unit must be text'
             });
         }
 
@@ -37,7 +39,7 @@ exports.createProduct = async (req, res) => {
 
         if (isNaN(purchase_price) || isNaN(stock)) {
             return res.status(400).json({
-                message: 'Price and stock must be numbers'
+                message: 'Purchase price and stock must be numbers'
             });
         }
 
@@ -54,8 +56,9 @@ exports.createProduct = async (req, res) => {
         }
 
         const [result] = await db.execute(
-            `INSERT INTO products (name, category, purchase_price, stock, unit)
-             VALUES (?, ?, ?, ?, ?)`,
+            `INSERT INTO products
+            (name, category, purchase_price, stock, unit)
+            VALUES (?, ?, ?, ?, ?)`,
             [name, category, purchase_price, stock, unit]
         );
 
@@ -71,15 +74,19 @@ exports.createProduct = async (req, res) => {
     }
 };
 
-
+// ===============================
 // GET ALL PRODUCTS
+// ===============================
 exports.getAllProducts = async (req, res) => {
     try {
         const [rows] = await db.execute(
-            `SELECT * FROM products ORDER BY id DESC`
+            `SELECT *
+             FROM products
+             ORDER BY id DESC`
         );
 
-        res.json(rows);
+        res.status(200).json(rows);
+
     } catch (err) {
         res.status(500).json({
             error: err.message

@@ -1,251 +1,269 @@
-* {
-  box-sizing: border-box;
+
+/* =========================
+   DESIGN SYSTEM TOKENS
+========================= */
+
+:root {
+  --primary: #1f7a4f;
+  --primary-hover: #239a63;
+
+  --bg: #0b1220;
+  --panel: #0f172a;
+
+  --white: #ffffff;
+  --text: #0f172a;
+  --muted: #64748b;
+
+  --border: rgba(15, 23, 42, 0.08);
 }
 
 /* =========================
-   PAGE
+   GLOBAL LAYOUT
 ========================= */
+
 .login-page {
   height: 100vh;
-  display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
+  display: flex;
+  font-family: Inter, sans-serif;
 
-  background: #f8fafc;
-
-  opacity: 0;
-  transform: translateY(10px);
-  transition: 0.7s ease;
-}
-
-.login-page.loaded {
-  opacity: 1;
-  transform: translateY(0);
+  background: var(--bg);
+  overflow: hidden;
 }
 
 /* =========================
-   LEFT PANEL (BRAND SIDE FIXED)
+   LEFT PANEL (BRAND SIDE)
 ========================= */
-.login-brand-panel {
-  padding: 60px;
+
+.brand-panel {
+  flex: 1.25;
+  color: white;
+
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 
+  padding: 60px;
+
+  background: var(--panel);
+
   position: relative;
   overflow: hidden;
-
-  /* richer professional contrast */
-  background: linear-gradient(135deg, #1e3a8a, #0f172a);
 }
 
-/* glow */
-.login-brand-panel::before {
+/* soft brand glow (subtle, not dominant) */
+.brand-panel::before {
   content: "";
   position: absolute;
-  width: 650px;
-  height: 650px;
 
-  background: rgba(59, 130, 246, 0.28);
-  filter: blur(130px);
+  width: 320px;
+  height: 320px;
 
-  top: -200px;
-  left: -200px;
+  top: -120px;
+  left: -120px;
 
-  animation: floatGlow 8s ease-in-out infinite;
-}
-
-@keyframes floatGlow {
-  0% { transform: translate(0, 0); opacity: 0.6; }
-  50% { transform: translate(60px, 40px); opacity: 1; }
-  100% { transform: translate(0, 0); opacity: 0.6; }
+  background: rgba(31, 122, 79, 0.18);
+  filter: blur(90px);
+  border-radius: 50%;
 }
 
 /* =========================
-   BRAND TEXT
+   BRAND CONTENT
 ========================= */
-.brand-icon {
-  width: 56px;
-  height: 56px;
-  display: grid;
-  place-items: center;
+
+.brand-content {
+  z-index: 2;
+  max-width: 420px;
+}
+
+.brand-logo {
+  width: 60px;
+  height: 60px;
 
   border-radius: 14px;
-
-  background: rgba(255,255,255,0.10);
-  border: 1px solid rgba(255,255,255,0.2);
-
-  margin-bottom: 20px;
-
-  color: #ffffff;
-}
-
-.eyebrow {
-  font-size: 12px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.7);
-  margin: 0;
-}
-
-/* SHOVA STORES (HERO TEXT) */
-.brand-title {
-  font-size: 72px;
-  font-weight: 900;
-  margin: 6px 0;
-  letter-spacing: -1.5px;
-  line-height: 1.05;
-
-  color: #ffffff;
-}
-
-/* Billing Desk (sub text smaller) */
-.brand-sub {
-  font-size: 16px;
-  color: rgba(255,255,255,0.75);
-  font-weight: 500;
-}
-
-/* =========================
-   STATS (FIXED ROW LAYOUT)
-========================= */
-.stats {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.stat {
-  flex: 1;
-  min-width: 130px;
-
-  padding: 14px;
-  border-radius: 12px;
-
-  background: rgba(255,255,255,0.10);
-  backdrop-filter: blur(10px);
-
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-
-  color: #ffffff;
-}
-
-.stat svg {
-  opacity: 0.9;
-  color: #ffffff;
-}
-
-.stat strong {
-  font-size: 14px;
-  color: #ffffff;
-}
-
-/* =========================
-   RIGHT PANEL
-========================= */
-.login-form-panel {
-  display: grid;
-  place-items: center;
-
-  background: #f8fafc;
-}
-
-/* LOGIN CARD */
-.login-card {
-  width: 360px;
-  padding: 34px;
-
-  border-radius: 18px;
-
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-
-  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.08);
-
-  transform: translateY(20px);
-  opacity: 0;
-  animation: popIn 0.7s ease forwards;
-}
-
-@keyframes popIn {
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-/* =========================
-   FORM TEXT
-========================= */
-.form-title {
-  font-size: 26px;
-  font-weight: 700;
-  margin: 0;
-  color: #0f172a;
-}
-
-.form-subtitle {
-  font-size: 13px;
-  color: #64748b;
-  margin-bottom: 18px;
-}
-
-/* =========================
-   FORM
-========================= */
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-/* =========================
-   BUTTON
-========================= */
-.btn {
-  background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
-  color: #ffffff !important;
-
-  padding: 14px 16px;
-  border-radius: 14px;
-
-  font-weight: 700;
-  font-size: 15px;
-
-  text-transform: none;
-
-  box-shadow: 0 14px 30px rgba(37, 99, 235, 0.25);
-
-  transition: all 0.25s ease;
+  background: rgba(255,255,255,0.08);
 
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 18px 40px rgba(37, 99, 235, 0.35);
+.brand-tag {
+  font-size: 12px;
+  letter-spacing: 2px;
+  opacity: 0.7;
 }
 
-.btn:active {
-  transform: scale(0.98);
+.brand-content h1 {
+  font-size: 44px;
+  margin: 15px 0;
+}
+
+.brand-content p {
+  opacity: 0.8;
+  line-height: 1.6;
+  max-width: 360px;
 }
 
 /* =========================
-   MOBILE
+   FEATURE CARDS
 ========================= */
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.feature-card {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.10);
+
+  border-radius: 14px;
+  padding: 12px;
+
+  transition: 0.2s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  background: rgba(255,255,255,0.10);
+}
+
+/* =========================
+   RIGHT PANEL (CLEAN WHITE LOGIN AREA)
+========================= */
+
+.login-panel {
+  flex: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--white);
+}
+
+/* =========================
+   LOGIN CARD
+========================= */
+
+.login-card {
+  width: 420px;
+
+  background: var(--white);
+
+  padding: 42px;
+  border-radius: 18px;
+
+  border: 1px solid var(--border);
+
+  box-shadow:
+    0 30px 80px rgba(0,0,0,0.12),
+    0 2px 10px rgba(0,0,0,0.06);
+
+  transition: all 0.2s ease;
+}
+
+.login-card:hover {
+  transform: translateY(-3px);
+}
+
+/* =========================
+   ICON (PRIMARY ACTION COLOR ONLY)
+========================= */
+
+.login-icon {
+  width: 56px;
+  height: 56px;
+
+  border-radius: 14px;
+
+  background: var(--primary);
+  color: white;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 16px;
+}
+
+/* =========================
+   FORM
+========================= */
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* =========================
+   INPUTS (CONSISTENT FOCUS SYSTEM)
+========================= */
+
+.MuiOutlinedInput-root {
+  border-radius: 12px !important;
+}
+
+.MuiOutlinedInput-root:hover fieldset {
+  border-color: var(--primary) !important;
+}
+
+.MuiOutlinedInput-root.Mui-focused fieldset {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px rgba(31, 122, 79, 0.12);
+}
+
+/* =========================
+   BUTTON (SYSTEM PRIMARY ACTION)
+========================= */
+
+.login-btn {
+  background: var(--primary) !important;
+  color: white !important;
+
+  padding: 12px !important;
+  border-radius: 12px !important;
+
+  font-weight: 600 !important;
+  text-transform: none !important;
+
+  transition: all 0.2s ease;
+}
+
+.login-btn:hover {
+  background: var(--primary-hover) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 25px rgba(31, 122, 79, 0.2);
+}
+
+/* =========================
+   SHAKE ERROR
+========================= */
+
+.shake {
+  animation: shake 0.3s ease;
+}
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  50% { transform: translateX(4px); }
+  75% { transform: translateX(-4px); }
+  100% { transform: translateX(0); }
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
 @media (max-width: 900px) {
   .login-page {
-    grid-template-columns: 1fr;
+    flex-direction: column;
   }
 
-  .login-brand-panel {
+  .brand-panel {
     display: none;
-  }
-
-  .login-card {
-    width: 90%;
   }
 }

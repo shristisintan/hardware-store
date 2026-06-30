@@ -1,0 +1,112 @@
+.sidebar {
+  width: 270px;
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  background: linear-gradient(180deg, #163f36, #102c27);
+
+  color: white;
+
+  padding: 24px 18px;
+
+  box-shadow: 6px 0 30px rgba(0, 0, 0, 0.08);
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  margin-bottom: 40px;
+}
+
+.sidebar-logo svg {
+  font-size: 42px;
+  color: #f5b841;
+}
+
+.sidebar-logo h2 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.sidebar-logo span {
+  font-size: 13px;
+  color: rgba(255,255,255,.75);
+}
+
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.menu-item {
+  height: 52px;
+
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  text-decoration: none;
+
+  color: white;
+
+  padding: 0 16px;
+
+  border-radius: 12px;
+
+  transition: all .25s ease;
+
+  margin-bottom: 6px;
+}
+
+.menu-item.active {
+  background: rgba(255,255,255,.18);
+
+  font-weight: 700;
+
+  box-shadow: inset 4px 0 0 #f5b841;
+}
+
+.menu-item:hover {
+  background: rgba(255,255,255,.10);
+
+  transform: translateX(4px);
+}
+
+.menu-item svg {
+  font-size: 24px;
+}
+
+.logout-btn {
+  height: 52px;
+
+  border: none;
+
+  border-radius: 12px;
+
+  background: rgba(255,255,255,.08);
+
+  color: white;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 12px;
+
+  cursor: pointer;
+
+  transition: .25s;
+}
+
+.logout-btn:hover {
+  background: rgba(255,255,255,.15);
+}
