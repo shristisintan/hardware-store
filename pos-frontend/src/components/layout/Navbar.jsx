@@ -6,7 +6,10 @@ import {
 import { useNavigate } from "react-router-dom";
 import "./Navbar.css";
 
-function Navbar() {
+function Navbar({
+  title = "Dashboard",
+  subtitle = "",
+}) {
   const navigate = useNavigate();
 
   const today = new Date().toLocaleDateString("en-US", {
@@ -24,8 +27,11 @@ function Navbar() {
   return (
     <header className="navbar">
       <div>
-        <h2>Dashboard</h2>
-        <p>{today}</p>
+        <h2>{title}</h2>
+
+        <p>
+          {subtitle ? subtitle : today}
+        </p>
       </div>
 
       <div className="navbar-right">

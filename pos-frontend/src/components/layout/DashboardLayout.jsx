@@ -1,26 +1,51 @@
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 
-function DashboardLayout({ children }) {
+function DashboardLayout({
+  children,
+  title = "Dashboard",
+  subtitle = "",
+}) {
   return (
     <div
       style={{
         display: "flex",
-        minHeight: "100vh",
-        background: "#f5f7fa",
+        height: "100vh",
+        overflow: "hidden", // 🔥 prevents page overflow chaos
+        background: "#F5F7FA",
       }}
     >
+      {/* SIDEBAR (fixed column) */}
       <Sidebar />
 
+      {/* MAIN AREA */}
       <div
         style={{
           flex: 1,
-          padding: "25px",
+          display: "flex",
+          flexDirection: "column",
+          minWidth: 0, // 🔥 prevents horizontal overflow bugs
         }}
       >
-        <Navbar />
+        {/* NAVBAR (fixed at top) */}
+        <div
+          style={{
+            flexShrink: 0,
+          }}
+        >
+          <Navbar title={title} subtitle={subtitle} />
+        </div>
 
-        {children}
+        {/* SCROLLABLE CONTENT AREA */}
+        <div
+          style={{
+            flex: 1,
+            overflowY: "auto", // 🔥 THIS is what you were missing
+            padding: "25px",
+          }}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );

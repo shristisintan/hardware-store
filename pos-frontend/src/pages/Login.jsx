@@ -214,23 +214,25 @@ function Login() {
             />
 
             <TextField
-              fullWidth
-              label="Password"
-              type={showPassword ? "text" : "password"}
-              value={formData.password}
-              error={!!errors.password}
-              helperText={errors.password}
-              onChange={(e) => handleChange("password", e.target.value)}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setShowPassword(p => !p)}>
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
+  fullWidth
+  label="Password"
+  type={showPassword ? "text" : "password"}
+  value={formData.password}
+  error={!!errors.password}
+  helperText={errors.password}
+  onChange={(e) => handleChange("password", e.target.value)}
+  slotProps={{
+    input: {
+      endAdornment: (
+        <InputAdornment position="end">
+          <IconButton onClick={() => setShowPassword((p) => !p)} edge="end">
+            {showPassword ? <VisibilityOff /> : <Visibility />}
+          </IconButton>
+        </InputAdornment>
+      ),
+    },
+  }}
+/>
 
             <FormControlLabel
               control={
