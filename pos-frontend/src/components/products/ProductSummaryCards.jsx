@@ -1,82 +1,107 @@
+
+import {
+  Inventory2,
+  CheckCircle,
+  Warning,
+  Error,
+} from "@mui/icons-material";
+
 import "./ProductSummaryCards.css";
 
-function ProductSummaryCards({ products }) {
+function getStatus(product) {
+  const stock = Number(product.stock);
+
+  const threshold = Number(
+    product.low_stock_threshold ?? 10
+  );
+
+  const limit = Number(
+    product.low_stock_limit ?? 5
+  );
+
+  if (stock <= limit) {
+    return "critical";
+  }
+
+  if (stock <= threshold) {
+    return "low";
+  }
+
+  return "instock";
+}
+
+function ProductSummaryCards({ products = [] }) {
   const total = products.length;
 
   const inStock = products.filter(
-    (product) => product.stock > 15
+    (product) => getStatus(product) === "instock"
   ).length;
 
   const lowStock = products.filter(
-    (product) => product.stock <= 15 && product.stock > 5
+    (product) => getStatus(product) === "low"
   ).length;
 
   const critical = products.filter(
-    (product) => product.stock <= 5
+    (product) => getStatus(product) === "critical"
   ).length;
 
-  const cards = [
-    {
-      label: "Total Products",
-      value: total,
-      icon: "📦",
-      color: "#173F35",
-    },
-    {
-      label: "In Stock",
-      value: inStock,
-      icon: "✅",
-      color: "#16A34A",
-    },
-    {
-      label: "Low Stock",
-      value: lowStock,
-      icon: "⚠️",
-      color: "#F59E0B",
-    },
-    {
-      label: "Critical",
-      value: critical,
-      icon: "⛔",
-      color: "#DC2626",
-    },
-  ];
-
   return (
-    <div className="summary-grid">
-      {cards.map((card) => (
-        <div
-          className="summary-card"
-          key={card.label}
-        >
-          <div className="summary-top">
-            <div>
-              <p>{card.label}</p>
+    <div className="inventory-overview">
+      <div className="inventory-overview-header">
+        <div>
+          <h3>Inventory Overview</h3>
+          <p>Current stock status</p>
+        </div>
+      </div>
 
-              <h2 style={{ color: card.color }}>
-                {card.value}
-              </h2>
-            </div>
-
-            <div
-              className="summary-icon"
-              style={{
-                background: `${card.color}15`,
-              }}
-            >
-              <span style={{ fontSize: "28px" }}>
-                {card.icon}
-              </span>
-            </div>
+      <div className="inventory-stats">
+        <div className="inventory-stat">
+          <div className="inventory-stat-icon total">
+            <Inventory2 />
           </div>
 
-          <div className="summary-bottom">
-            Updated automatically from inventory
+          <div>
+            <span>Total Products</span>
+            <strong>{total}</strong>
           </div>
         </div>
-      ))}
+
+        <div className="inventory-stat">
+          <div className="inventory-stat-icon success">
+            <CheckCircle />
+          </div>
+
+          <div>
+            <span>In Stock</span>
+            <strong>{inStock}</strong>
+          </div>
+        </div>
+
+        <div className="inventory-stat">
+          <div className="inventory-stat-icon warning">
+            <Warning />
+          </div>
+
+          <div>
+            <span>Low Stock</span>
+            <strong>{lowStock}</strong>
+          </div>
+        </div>
+
+        <div className="inventory-stat">
+          <div className="inventory-stat-icon danger">
+            <Error />
+          </div>
+
+          <div>
+            <span>Critical</span>
+            <strong>{critical}</strong>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
 export default ProductSummaryCards;
+

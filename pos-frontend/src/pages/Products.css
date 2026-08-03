@@ -1,0 +1,92 @@
+
+.products-page {
+  width: 100%;
+}
+
+/* ===============================
+   SUMMARY CARDS
+================================ */
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.summary-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  box-sizing: border-box;
+  min-height: 92px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.summary-card:hover {
+  border-color: #c7d2fe;
+  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.04);
+}
+
+.summary-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.summary-top p {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.summary-top h2 {
+  margin: 4px 0 0;
+  color: #0f172a;
+  font-size: 22px;
+  line-height: 1.15;
+  font-weight: 650;
+}
+
+.summary-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.summary-icon span {
+  font-size: 19px !important;
+}
+
+.summary-bottom {
+  margin-top: 7px;
+  padding-top: 0;
+  border-top: none;
+
+  color: #94a3b8;
+  font-size: 10px;
+}
+
+/* ===============================
+   RESPONSIVE
+================================ */
+
+@media (max-width: 1000px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 550px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+}

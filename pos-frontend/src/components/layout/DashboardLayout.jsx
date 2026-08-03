@@ -2,53 +2,82 @@ import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 
 function DashboardLayout({
-  children,
-  title = "Dashboard",
-  subtitle = "",
+children,
+title = "Dashboard",
+subtitle = "",
 }) {
-  return (
-    <div
+return (
+<div
+style={{
+display: "flex",
+width: "100%",
+height: "100vh",
+overflow: "hidden",
+backgroundColor: "#F7F7F5",
+color: "#1F2937",
+}}
+>
+{/* =========================
+SIDEBAR
+========================= */} <Sidebar />
+
+  {/* =========================
+      MAIN APPLICATION
+  ========================= */}
+  <main
+    style={{
+      flex: 1,
+      minWidth: 0,
+      height: "100vh",
+      display: "flex",
+      flexDirection: "column",
+      overflow: "hidden",
+    }}
+  >
+    {/* =========================
+        TOP NAVIGATION
+    ========================= */}
+    <header
       style={{
-        display: "flex",
-        height: "100vh",
-        overflow: "hidden", // 🔥 prevents page overflow chaos
-        background: "#F5F7FA",
+        flexShrink: 0,
+        backgroundColor: "#FFFFFF",
+        borderBottom: "1px solid #E8E8E5",
+        zIndex: 10,
       }}
     >
-      {/* SIDEBAR (fixed column) */}
-      <Sidebar />
+      <Navbar
+        title={title}
+        subtitle={subtitle}
+      />
+    </header>
 
-      {/* MAIN AREA */}
+    {/* =========================
+        PAGE CONTENT
+    ========================= */}
+    <section
+      style={{
+        flex: 1,
+        minHeight: 0,
+        overflowY: "auto",
+        overflowX: "hidden",
+      }}
+    >
       <div
         style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          minWidth: 0, // 🔥 prevents horizontal overflow bugs
+          width: "100%",
+          maxWidth: "1500px",
+          margin: "0 auto",
+          padding: "32px 36px 48px",
+          boxSizing: "border-box",
         }}
       >
-        {/* NAVBAR (fixed at top) */}
-        <div
-          style={{
-            flexShrink: 0,
-          }}
-        >
-          <Navbar title={title} subtitle={subtitle} />
-        </div>
-
-        {/* SCROLLABLE CONTENT AREA */}
-        <div
-          style={{
-            flex: 1,
-            overflowY: "auto", // 🔥 THIS is what you were missing
-            padding: "25px",
-          }}
-        >
-          {children}
-        </div>
+        {children}
       </div>
-    </div>
-  );
+    </section>
+  </main>
+</div>
+
+);
 }
 
 export default DashboardLayout;

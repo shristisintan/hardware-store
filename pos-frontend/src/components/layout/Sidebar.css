@@ -1,112 +1,261 @@
 .sidebar {
-  width: 270px;
-  min-height: 100vh;
+width: 238px;
+min-width: 238px;
+height: 100vh;
 
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+display: flex;
+flex-direction: column;
+justify-content: space-between;
 
-  background: linear-gradient(180deg, #163f36, #102c27);
+background: #ffffff;
 
-  color: white;
+color: #0f172a;
 
-  padding: 24px 18px;
+padding: 22px 14px;
 
-  box-shadow: 6px 0 30px rgba(0, 0, 0, 0.08);
+box-sizing: border-box;
+
+border-right: 1px solid #e2e8f0;
+
+overflow-y: auto;
 }
 
-.sidebar-logo {
-  display: flex;
-  align-items: center;
-  gap: 14px;
+/* ===============================
+LOGO
+================================ */
 
-  margin-bottom: 40px;
+.sidebar-logo {
+display: flex;
+
+align-items: center;
+
+gap: 11px;
+
+padding: 4px 10px;
+
+margin-bottom: 32px;
 }
 
 .sidebar-logo svg {
-  font-size: 42px;
-  color: #f5b841;
+font-size: 31px;
+
+color: #4f46e5;
 }
 
 .sidebar-logo h2 {
-  margin: 0;
-  font-size: 26px;
-  font-weight: 800;
+margin: 0;
+
+font-size: 18px;
+
+font-weight: 700;
+
+color: #0f172a;
+
+letter-spacing: -0.3px;
 }
 
 .sidebar-logo span {
-  font-size: 13px;
-  color: rgba(255,255,255,.75);
+display: block;
+
+margin-top: 3px;
+
+font-size: 11px;
+
+color: #64748b;
 }
+
+/* ===============================
+MENU
+================================ */
 
 .sidebar-menu {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+display: flex;
+
+flex-direction: column;
+
+gap: 3px;
 }
+
+/* ===============================
+MENU ITEM
+================================ */
 
 .menu-item {
-  height: 52px;
+height: 43px;
 
-  display: flex;
-  align-items: center;
-  gap: 16px;
+display: flex;
 
-  text-decoration: none;
+align-items: center;
 
-  color: white;
+gap: 12px;
 
-  padding: 0 16px;
+text-decoration: none;
 
-  border-radius: 12px;
+color: #64748b;
 
-  transition: all .25s ease;
+padding: 0 12px;
 
-  margin-bottom: 6px;
-}
+border-radius: 8px;
 
-.menu-item.active {
-  background: rgba(255,255,255,.18);
+transition:
+background 0.2s ease,
+color 0.2s ease;
 
-  font-weight: 700;
+font-size: 13px;
 
-  box-shadow: inset 4px 0 0 #f5b841;
-}
-
-.menu-item:hover {
-  background: rgba(255,255,255,.10);
-
-  transform: translateX(4px);
+font-weight: 500;
 }
 
 .menu-item svg {
-  font-size: 24px;
+font-size: 20px;
+
+color: #64748b;
+
+transition: color 0.2s ease;
 }
 
+/* ===============================
+ACTIVE
+================================ */
+
+.menu-item.active {
+background: #eef2ff;
+
+color: #4f46e5;
+
+font-weight: 600;
+}
+
+.menu-item.active svg {
+color: #4f46e5;
+}
+
+/* ===============================
+HOVER
+================================ */
+
+.menu-item:hover:not(.active) {
+background: #f8fafc;
+
+color: #334155;
+}
+
+.menu-item:hover:not(.active) svg {
+color: #475569;
+}
+
+/* ===============================
+LOGOUT
+================================ */
+
 .logout-btn {
-  height: 52px;
+height: 43px;
 
-  border: none;
+width: 100%;
 
-  border-radius: 12px;
+border: 1px solid #e2e8f0;
 
-  background: rgba(255,255,255,.08);
+border-radius: 8px;
 
-  color: white;
+background: #ffffff;
 
-  display: flex;
+color: #64748b;
 
-  align-items: center;
+display: flex;
 
-  justify-content: center;
+align-items: center;
 
-  gap: 12px;
+justify-content: flex-start;
 
-  cursor: pointer;
+gap: 12px;
 
-  transition: .25s;
+padding: 0 12px;
+
+cursor: pointer;
+
+font-size: 13px;
+
+font-weight: 500;
+
+transition: all 0.2s ease;
+}
+
+.logout-btn svg {
+font-size: 20px;
 }
 
 .logout-btn:hover {
-  background: rgba(255,255,255,.15);
+background: #fef2f2;
+
+border-color: #fecaca;
+
+color: #dc2626;
+}
+
+/* ===============================
+SCROLLBAR
+================================ */
+
+.sidebar::-webkit-scrollbar {
+width: 5px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+background: #e2e8f0;
+
+border-radius: 10px;
+}
+
+/* ===============================
+RESPONSIVE
+================================ */
+
+@media (max-width: 800px) {
+.sidebar {
+width: 70px;
+
+min-width: 70px;
+
+padding: 20px 10px;
+
+}
+
+.sidebar-logo {
+justify-content: center;
+
+
+padding: 4px 0;
+
+}
+
+.sidebar-logo div {
+display: none;
+}
+
+.menu-item {
+justify-content: center;
+
+padding: 0;
+
+
+}
+
+.menu-item span {
+display: none;
+}
+
+.logout-btn {
+justify-content: center;
+
+padding: 0;
+
+}
+
+.logout-btn {
+font-size: 0;
+}
 }

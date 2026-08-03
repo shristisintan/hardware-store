@@ -10,22 +10,37 @@ import ProductViewDialog from "../components/products/ProductViewDialog";
 
 import { getProducts } from "../services/productService";
 
+import "./Products.css";
+
+function getStockStatus(product) {
+  const stock = Number(product.stock ?? 0);
+
+  const threshold = Number(
+    product.low_stock_threshold ?? 10
+  );
+
+  const limit = Number(
+    product.low_stock_limit ?? 5
+  );
+
+  if (stock <= limit) {
+    return "critical";
+  }
+
+  if (stock <= threshold) {
+    return "low";
+  }
+
+  return "instock";
+}
+
 function Products() {
-  // ===============================
-  // PRODUCTS
-  // ===============================
   const [products, setProducts] = useState([]);
 
-  // ===============================
-  // FILTERS
-  // ===============================
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
   const [stockFilter, setStockFilter] = useState("all");
 
-  // ===============================
-  // DIALOGS
-  // ===============================
   const [open, setOpen] = useState(false);
   const [editData, setEditData] = useState(null);
 
@@ -35,12 +50,22 @@ function Products() {
   // ===============================
   // FETCH PRODUCTS
   // ===============================
+
   const fetchProducts = async () => {
     try {
       const data = await getProducts();
-      setProducts(Array.isArray(data) ? data : []);
+
+      setProducts(
+        Array.isArray(data)
+          ? data
+          : []
+      );
     } catch (err) {
-      console.error(err);
+      console.error(
+        "Failed to fetch products:",
+        err
+      );
+
       setProducts([]);
     }
   };
@@ -52,61 +77,92 @@ function Products() {
   // ===============================
   // DYNAMIC CATEGORIES
   // ===============================
+
   const categories = useMemo(() => {
-    return [...new Set(products.map((p) => p.category))].sort();
+    return [
+      ...new Set(
+        products
+          .map(
+            (product) =>
+              product.category
+          )
+          .filter(Boolean)
+      ),
+    ].sort();
   }, [products]);
 
   // ===============================
-  // FILTERED PRODUCTS
+  // FILTER PRODUCTS
   // ===============================
+
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
+      const productName = String(
+        product.name || ""
+      ).toLowerCase();
+
+      const searchValue =
+        search.toLowerCase();
+
       const matchesSearch =
-        product.name.toLowerCase().includes(search.toLowerCase());
+        productName.includes(
+          searchValue
+        );
 
       const matchesCategory =
-        category === "all" || product.category === category;
+        category === "all" ||
+        product.category === category;
 
-      let matchesStock = true;
+      const status =
+        getStockStatus(product);
 
-      switch (stockFilter) {
-        case "instock":
-          matchesStock = product.stock > 15;
-          break;
+      const matchesStock =
+        stockFilter === "all" ||
+        status === stockFilter;
 
-        case "low":
-          matchesStock = product.stock <= 15 && product.stock > 5;
-          break;
-
-        case "critical":
-          matchesStock = product.stock <= 5;
-          break;
-
-        default:
-          matchesStock = true;
-      }
-
-      return matchesSearch && matchesCategory && matchesStock;
+      return (
+        matchesSearch &&
+        matchesCategory &&
+        matchesStock
+      );
     });
-  }, [products, search, category, stockFilter]);
+  }, [
+    products,
+    search,
+    category,
+    stockFilter,
+  ]);
 
   // ===============================
-  // HANDLERS
+  // ADD PRODUCT
   // ===============================
+
   const handleAdd = () => {
     setEditData(null);
     setOpen(true);
   };
+
+  // ===============================
+  // EDIT PRODUCT
+  // ===============================
 
   const handleEdit = (product) => {
     setEditData(product);
     setOpen(true);
   };
 
+  // ===============================
+  // VIEW PRODUCT
+  // ===============================
+
   const handleView = (product) => {
     setViewData(product);
     setViewOpen(true);
   };
+
+  // ===============================
+  // REFRESH
+  // ===============================
 
   const refreshData = async () => {
     await fetchProducts();
@@ -115,56 +171,100 @@ function Products() {
   return (
     <DashboardLayout
       title="Products"
-      subtitle="Manage your inventory"
+      subtitle="Manage products, stock levels and pricing."
     >
-      <ProductToolbar
-        onAddClick={handleAdd}
-        search={search}
-        setSearch={setSearch}
-        category={category}
-        setCategory={setCategory}
-        stockFilter={stockFilter}
-        setStockFilter={setStockFilter}
-        categories={categories}
-      />
+      <div className="products-page">
 
-      <ProductSummaryCards
-        products={products}
-      />
+        {/* ===============================
+            SUMMARY
+        =============================== */}
 
-      <Box
-        sx={{
-          maxHeight: "65vh",
-          overflowY: "auto",
-          overflowX: "auto",
-          borderRadius: "12px",
-          border: "1px solid #e5e7eb",
-          backgroundColor: "#fff",
-        }}
-      >
-        <ProductTable
-          products={filteredProducts}
-          onEdit={handleEdit}
-          onView={handleView}
-          onDeleteSuccess={refreshData}
+        <ProductSummaryCards
+          products={products}
         />
-      </Box>
 
-      <AddProductDialog
-        open={open}
-        onClose={() => setOpen(false)}
-        editData={editData}
-        onSuccess={() => {
-          setOpen(false);
-          refreshData();
-        }}
-      />
+        {/* ===============================
+            TOOLBAR
+        =============================== */}
 
-      <ProductViewDialog
-        open={viewOpen}
-        onClose={() => setViewOpen(false)}
-        data={viewData}
-      />
+        <div className="products-toolbar-container">
+
+          <ProductToolbar
+            onAddClick={handleAdd}
+
+            search={search}
+            setSearch={setSearch}
+
+            category={category}
+            setCategory={setCategory}
+
+            stockFilter={stockFilter}
+            setStockFilter={setStockFilter}
+
+            categories={categories}
+          />
+
+        </div>
+
+        {/* ===============================
+            PRODUCT TABLE
+        =============================== */}
+
+        <div className="products-table-container">
+
+          <Box
+            sx={{
+              width: "100%",
+              maxHeight:
+                "calc(100vh - 330px)",
+              minHeight: "420px",
+              overflowY: "auto",
+              overflowX: "auto",
+            }}
+          >
+
+            <ProductTable
+              products={filteredProducts}
+              onEdit={handleEdit}
+              onView={handleView}
+              onDeleteSuccess={
+                refreshData
+              }
+            />
+
+          </Box>
+
+        </div>
+
+        {/* ===============================
+            ADD / EDIT
+        =============================== */}
+
+        <AddProductDialog
+          open={open}
+          onClose={() =>
+            setOpen(false)
+          }
+          editData={editData}
+          onSuccess={() => {
+            setOpen(false);
+            refreshData();
+          }}
+        />
+
+        {/* ===============================
+            VIEW
+        =============================== */}
+
+        <ProductViewDialog
+          open={viewOpen}
+          onClose={() =>
+            setViewOpen(false)
+          }
+          data={viewData}
+        />
+
+      </div>
     </DashboardLayout>
   );
 }

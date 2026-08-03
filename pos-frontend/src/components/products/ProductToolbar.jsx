@@ -1,3 +1,4 @@
+
 import {
   Box,
   Button,
@@ -17,104 +18,216 @@ function ProductToolbar({
   setCategory,
   stockFilter,
   setStockFilter,
-  categories,
+  categories = [],
 }) {
   return (
     <Box
       sx={{
+        width: "100%",
+        mb: 2,
+        p: 1.5,
+        boxSizing: "border-box",
+
         display: "flex",
-        justifyContent: "space-between",
         alignItems: "center",
-        gap: 2,
-        mb: 4,
-        flexWrap: "wrap",
+        gap: 1.25,
+
+        flexWrap: {
+          xs: "wrap",
+          md: "nowrap",
+        },
+
+        backgroundColor: "#FFFFFF",
+
+        border: "1px solid #E2E8F0",
+        borderRadius: 2.5,
       }}
     >
-      {/* Left Side */}
-      <Box
+      {/* SEARCH */}
+
+      <TextField
+        placeholder="Search products..."
+        size="small"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
         sx={{
-          display: "flex",
-          gap: 2,
-          flexWrap: "wrap",
           flex: 1,
+
+          minWidth: {
+            xs: "100%",
+            md: 240,
+          },
+
+          "& .MuiOutlinedInput-root": {
+            height: 40,
+            borderRadius: 2,
+            backgroundColor: "#F8FAFC",
+
+            "& fieldset": {
+              borderColor: "#E2E8F0",
+            },
+
+            "&:hover fieldset": {
+              borderColor: "#CBD5E1",
+            },
+
+            "&.Mui-focused fieldset": {
+              borderColor: "#4F46E5",
+            },
+          },
+
+          "& input": {
+            fontSize: "13px",
+          },
+        }}
+        slotProps={{
+          input: {
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon
+                  sx={{
+                    color: "#94A3B8",
+                    fontSize: 19,
+                  }}
+                />
+              </InputAdornment>
+            ),
+          },
+        }}
+      />
+
+      {/* CATEGORY */}
+
+      <TextField
+        select
+        size="small"
+        value={category}
+        onChange={(e) => setCategory(e.target.value)}
+        sx={{
+          width: {
+            xs: "calc(50% - 6px)",
+            md: 150,
+          },
+
+          "& .MuiOutlinedInput-root": {
+            height: 40,
+            borderRadius: 2,
+            backgroundColor: "#F8FAFC",
+
+            "& fieldset": {
+              borderColor: "#E2E8F0",
+            },
+
+            "&:hover fieldset": {
+              borderColor: "#CBD5E1",
+            },
+
+            "&.Mui-focused fieldset": {
+              borderColor: "#4F46E5",
+            },
+          },
+
+          "& .MuiSelect-select": {
+            fontSize: "13px",
+          },
         }}
       >
-        {/* Search */}
-        <TextField
-          placeholder="Search products..."
-          size="small"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          sx={{
-            width: 320,
-            background: "#fff",
-            borderRadius: "12px",
-          }}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon sx={{ color: "#94A3B8" }} />
-                </InputAdornment>
-              ),
+        <MenuItem value="all">
+          All Categories
+        </MenuItem>
+
+        {categories.map((cat) => (
+          <MenuItem key={cat} value={cat}>
+            {cat}
+          </MenuItem>
+        ))}
+      </TextField>
+
+      {/* STOCK */}
+
+      <TextField
+        select
+        size="small"
+        value={stockFilter}
+        onChange={(e) => setStockFilter(e.target.value)}
+        sx={{
+          width: {
+            xs: "calc(50% - 6px)",
+            md: 130,
+          },
+
+          "& .MuiOutlinedInput-root": {
+            height: 40,
+            borderRadius: 2,
+            backgroundColor: "#F8FAFC",
+
+            "& fieldset": {
+              borderColor: "#E2E8F0",
             },
-          }}
-        />
 
-        {/* Category Filter */}
-        <TextField
-          select
-          size="small"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          sx={{
-            minWidth: 180,
-            background: "#fff",
-            borderRadius: "12px",
-          }}
-        >
-          <MenuItem value="all">All Categories</MenuItem>
+            "&:hover fieldset": {
+              borderColor: "#CBD5E1",
+            },
 
-          {categories.map((cat) => (
-            <MenuItem key={cat} value={cat}>
-              {cat}
-            </MenuItem>
-          ))}
-        </TextField>
+            "&.Mui-focused fieldset": {
+              borderColor: "#4F46E5",
+            },
+          },
 
-        {/* Stock Filter */}
-        <TextField
-          select
-          size="small"
-          value={stockFilter}
-          onChange={(e) => setStockFilter(e.target.value)}
-          sx={{
-            minWidth: 170,
-            background: "#fff",
-            borderRadius: "12px",
-          }}
-        >
-          <MenuItem value="all">All Stock</MenuItem>
-          <MenuItem value="instock">In Stock</MenuItem>
-          <MenuItem value="low">Low Stock</MenuItem>
-          <MenuItem value="critical">Critical</MenuItem>
-        </TextField>
-      </Box>
+          "& .MuiSelect-select": {
+            fontSize: "13px",
+          },
+        }}
+      >
+        <MenuItem value="all">
+          All Stock
+        </MenuItem>
 
-      {/* Right Side */}
+        <MenuItem value="instock">
+          In Stock
+        </MenuItem>
+
+        <MenuItem value="low">
+          Low Stock
+        </MenuItem>
+
+        <MenuItem value="critical">
+          Critical
+        </MenuItem>
+      </TextField>
+
+      {/* ADD PRODUCT */}
+
       <Button
         variant="contained"
         startIcon={<AddIcon />}
         onClick={onAddClick}
         sx={{
-          backgroundColor: "#173F35",
+          height: 40,
+          minWidth: {
+            xs: "100%",
+            md: 135,
+          },
+
+          px: 2,
+
+          borderRadius: 2,
+
+          backgroundColor: "#4F46E5",
+
           textTransform: "none",
-          borderRadius: "12px",
-          px: 3,
-          py: 1.2,
+
           fontWeight: 600,
+
+          fontSize: "13px",
+
+          boxShadow: "none",
+
+          whiteSpace: "nowrap",
+
           "&:hover": {
-            backgroundColor: "#215347",
+            backgroundColor: "#4338CA",
+            boxShadow: "none",
           },
         }}
       >

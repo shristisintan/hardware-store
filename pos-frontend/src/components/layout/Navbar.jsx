@@ -1,60 +1,91 @@
 import {
-  NotificationsNone,
-  Logout,
-  AccountCircle,
+NotificationsNone,
+Logout,
+AccountCircle,
 } from "@mui/icons-material";
+
 import { useNavigate } from "react-router-dom";
+
 import "./Navbar.css";
 
 function Navbar({
-  title = "Dashboard",
-  subtitle = "",
+title = "Dashboard",
+subtitle = "",
 }) {
-  const navigate = useNavigate();
+const navigate = useNavigate();
 
-  const today = new Date().toLocaleDateString("en-US", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+const today = new Date().toLocaleDateString("en-US", {
+weekday: "long",
+day: "numeric",
+month: "long",
+year: "numeric",
+});
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    navigate("/", { replace: true });
-  };
+const logout = () => {
+localStorage.removeItem("token");
 
-  return (
-    <header className="navbar">
+```
+navigate("/", {
+  replace: true,
+});
+```
+
+};
+
+return ( <header className="navbar">
+
+  <div>
+    <h2>{title}</h2>
+
+    <p>
+      {subtitle || today}
+    </p>
+  </div>
+
+
+  <div className="navbar-right">
+
+    <button
+      className="icon-btn"
+      type="button"
+      aria-label="Notifications"
+    >
+      <NotificationsNone />
+    </button>
+
+
+    {/* USER */}
+    <div className="profile">
+
+      <AccountCircle />
+
       <div>
-        <h2>{title}</h2>
+        <strong>Admin</strong>
 
-        <p>
-          {subtitle ? subtitle : today}
-        </p>
+        <span>
+          Store Owner
+        </span>
       </div>
 
-      <div className="navbar-right">
-        <button className="icon-btn">
-          <NotificationsNone />
-        </button>
+    </div>
 
-        <div className="profile">
-          <AccountCircle />
+    <button
+      className="logout"
+      onClick={logout}
+      type="button"
+    >
+      <Logout />
 
-          <div>
-            <strong>Admin</strong>
-            <span>Store Owner</span>
-          </div>
-        </div>
+      <span>
+        Logout
+      </span>
+    </button>
 
-        <button className="logout" onClick={logout}>
-          <Logout />
-          Logout
-        </button>
-      </div>
-    </header>
-  );
+  </div>
+
+</header>
+
+);
 }
 
 export default Navbar;

@@ -3,13 +3,14 @@ import {
   Inventory2,
   People,
   PointOfSale,
+  ReceiptLong,
   Assessment,
   Settings,
-  Logout,
   Storefront,
 } from "@mui/icons-material";
 
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
+
 import "./Sidebar.css";
 
 const menuItems = [
@@ -18,26 +19,37 @@ const menuItems = [
     path: "/dashboard",
     icon: <Dashboard />,
   },
+
   {
     title: "Products",
     path: "/products",
     icon: <Inventory2 />,
   },
+
   {
     title: "Customers",
     path: "/customers",
     icon: <People />,
   },
+
   {
     title: "Billing",
     path: "/billing",
     icon: <PointOfSale />,
   },
+
+  {
+    title: "Sales",
+    path: "/sales",
+    icon: <ReceiptLong />,
+  },
+
   {
     title: "Reports",
     path: "/reports",
     icon: <Assessment />,
   },
+
   {
     title: "Settings",
     path: "/settings",
@@ -46,45 +58,64 @@ const menuItems = [
 ];
 
 function Sidebar() {
-  const navigate = useNavigate();
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    navigate("/", { replace: true });
-  };
-
   return (
     <aside className="sidebar">
+
       <div>
+
+        {/* ===============================
+            LOGO
+        ================================ */}
+
         <div className="sidebar-logo">
+
           <Storefront />
 
           <div>
-            <h2>Shova Stores</h2>
-            <span>POS System</span>
+            <h2>
+              Shuva Stores
+            </h2>
+
+            <span>
+              POS System
+            </span>
           </div>
+
         </div>
 
+
+        {/* ===============================
+            NAVIGATION
+        ================================ */}
+
         <nav className="sidebar-menu">
+
           {menuItems.map((item) => (
+
             <NavLink
               key={item.title}
               to={item.path}
               className={({ isActive }) =>
-                isActive ? "menu-item active" : "menu-item"
+                isActive
+                  ? "menu-item active"
+                  : "menu-item"
               }
             >
+
               {item.icon}
-              <span>{item.title}</span>
+
+              <span>
+                {item.title}
+              </span>
+
             </NavLink>
+
           ))}
+
         </nav>
+
       </div>
 
-      <button className="logout-btn" onClick={logout}>
-        <Logout />
-        Logout
-      </button>
     </aside>
   );
 }

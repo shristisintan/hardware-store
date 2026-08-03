@@ -164,7 +164,7 @@ function Login() {
           <span className="brand-tag">HARDWARE STORE POS</span>
 
           <h1>
-            Shova<br />Stores
+            Shuva<br />Stores
           </h1>
 
           <p>

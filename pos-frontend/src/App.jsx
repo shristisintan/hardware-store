@@ -1,4 +1,9 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 
 import Login from "./pages/Login";
 
@@ -6,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
 import Customers from "./pages/Customers";
 import Billing from "./pages/Billing";
+import Sales from "./pages/Sales";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 
@@ -15,10 +21,21 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public */}
-        <Route path="/" element={<Login />} />
 
-        {/* Dashboard */}
+        {/* ===============================
+            PUBLIC
+        ================================ */}
+
+        <Route
+          path="/"
+          element={<Login />}
+        />
+
+
+        {/* ===============================
+            DASHBOARD
+        ================================ */}
+
         <Route
           path="/dashboard"
           element={
@@ -28,7 +45,11 @@ function App() {
           }
         />
 
-        {/* Products */}
+
+        {/* ===============================
+            PRODUCTS
+        ================================ */}
+
         <Route
           path="/products"
           element={
@@ -38,7 +59,11 @@ function App() {
           }
         />
 
-        {/* Customers */}
+
+        {/* ===============================
+            CUSTOMERS
+        ================================ */}
+
         <Route
           path="/customers"
           element={
@@ -48,7 +73,11 @@ function App() {
           }
         />
 
-        {/* Billing */}
+
+        {/* ===============================
+            BILLING
+        ================================ */}
+
         <Route
           path="/billing"
           element={
@@ -58,7 +87,25 @@ function App() {
           }
         />
 
-        {/* Reports */}
+
+        {/* ===============================
+            SALES
+        ================================ */}
+
+        <Route
+          path="/sales"
+          element={
+            <ProtectedRoute>
+              <Sales />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* ===============================
+            REPORTS
+        ================================ */}
+
         <Route
           path="/reports"
           element={
@@ -68,7 +115,11 @@ function App() {
           }
         />
 
-        {/* Settings */}
+
+        {/* ===============================
+            SETTINGS
+        ================================ */}
+
         <Route
           path="/settings"
           element={
@@ -78,8 +129,21 @@ function App() {
           }
         />
 
-        {/* Unknown Route */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+
+        {/* ===============================
+            UNKNOWN ROUTE
+        ================================ */}
+
+        <Route
+          path="*"
+          element={
+            <Navigate
+              to="/dashboard"
+              replace
+            />
+          }
+        />
+
       </Routes>
     </BrowserRouter>
   );
