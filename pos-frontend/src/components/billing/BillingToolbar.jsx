@@ -1,311 +1,367 @@
 import {
-  Paper,
-  Grid,
-  TextField,
-  Typography,
-  Button,
   Autocomplete,
   Box,
+  Button,
+  Chip,
+  Stack,
+  TextField,
+  Typography,
 } from "@mui/material";
 
-import AddShoppingCartRoundedIcon from "@mui/icons-material/AddShoppingCartRounded";
-
-const COLORS = {
-  primary: "#4F46E5",
-  primaryLight: "#EEF2FF",
-  text: "#0F172A",
-  secondary: "#64748B",
-  background: "#F7F7F5",
-  border: "#E2E8F0",
-  white: "#FFFFFF",
-};
+import {
+  Person,
+  Inventory2,
+  AddShoppingCart,
+} from "@mui/icons-material";
 
 function BillingToolbar({
   customers = [],
   products = [],
+
   selectedCustomer,
   setSelectedCustomer,
+
   selectedProduct,
   setSelectedProduct,
+
   sellingPrice,
   setSellingPrice,
+
   quantity,
   setQuantity,
+
   onAddItem,
 }) {
+  const selectedStock =
+    selectedProduct?.stock !== undefined &&
+    selectedProduct?.stock !== null
+      ? Number(selectedProduct.stock)
+      : null;
+
+  const numericQuantity = Number(quantity);
+
+  const remainingAfterAdd =
+    selectedStock !== null &&
+    Number.isInteger(numericQuantity) &&
+    numericQuantity > 0
+      ? selectedStock - numericQuantity
+      : selectedStock;
+
+  const getStockColor = (stock) => {
+    if (stock === null || stock === undefined) {
+      return "default";
+    }
+
+    if (stock <= 0) {
+      return "error";
+    }
+
+    if (
+      selectedProduct?.low_stock_limit !== undefined &&
+      stock <= Number(selectedProduct.low_stock_limit)
+    ) {
+      return "error";
+    }
+
+    if (
+      selectedProduct?.low_stock_threshold !== undefined &&
+      stock <= Number(selectedProduct.low_stock_threshold)
+    ) {
+      return "warning";
+    }
+
+    return "success";
+  };
+
+  const stockColor = getStockColor(selectedStock);
+
   return (
-    <Paper
-      elevation={0}
+    <Box
       sx={{
-        p: { xs: 2, md: 2.5 },
+        width: "100%",
         mb: 2,
-        borderRadius: 2.5,
-        border: `1px solid ${COLORS.border}`,
-        backgroundColor: COLORS.white,
       }}
     >
-      {/* HEADER */}
-
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-          gap: 2,
-          mb: 2.5,
+      <Stack
+        direction={{
+          xs: "column",
+          md: "row",
+        }}
+        spacing={1.5}
+        alignItems={{
+          xs: "stretch",
+          md: "center",
         }}
       >
-        <Box>
-          <Typography
-            sx={{
-              fontSize: 17,
-              fontWeight: 700,
-              color: COLORS.text,
-              lineHeight: 1.3,
-            }}
-          >
-            Create Invoice
-          </Typography>
-
-          <Typography
-            sx={{
-              mt: 0.4,
-              fontSize: 12.5,
-              color: COLORS.secondary,
-            }}
-          >
-            Select a customer and add products to this invoice.
-          </Typography>
-        </Box>
-
-        <Box
+        {/* ============================
+            CUSTOMER
+        ============================ */}
+        <Autocomplete
+          options={customers}
+          value={selectedCustomer || null}
+          onChange={(_, value) => {
+            setSelectedCustomer(value);
+          }}
+          getOptionLabel={(option) =>
+            option?.name || ""
+          }
+          isOptionEqualToValue={(option, value) =>
+            Number(option?.id) === Number(value?.id)
+          }
+          fullWidth
           sx={{
-            display: {
-              xs: "none",
-              sm: "flex",
+            flex: 1,
+            minWidth: {
+              md: 220,
             },
-            alignItems: "center",
-            justifyContent: "center",
-            width: 36,
-            height: 36,
-            borderRadius: 1.5,
-            backgroundColor: COLORS.primaryLight,
-            color: COLORS.primary,
-            flexShrink: 0,
+          }}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Customer"
+              placeholder="Select customer"
+              size="small"
+              required
+              InputProps={{
+                ...params.InputProps,
+                startAdornment: (
+                  <>
+                    <Person
+                      sx={{
+                        ml: 1,
+                        mr: 0.5,
+                        color: "text.secondary",
+                        fontSize: 20,
+                      }}
+                    />
+
+                    {params.InputProps?.startAdornment}
+                  </>
+                ),
+              }}
+            />
+          )}
+        />
+
+        {/* ============================
+            PRODUCT
+        ============================ */}
+        <Autocomplete
+          options={products}
+          value={selectedProduct || null}
+          onChange={(_, value) => {
+            setSelectedProduct(value);
+
+            // Do not automatically put purchase price
+            // into selling price.
+            setSellingPrice("");
+          }}
+          getOptionLabel={(option) =>
+            option?.name || ""
+          }
+          isOptionEqualToValue={(option, value) =>
+            Number(option?.id) === Number(value?.id)
+          }
+          fullWidth
+          sx={{
+            flex: 1,
+            minWidth: {
+              md: 220,
+            },
+          }}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Product"
+              placeholder="Select product"
+              size="small"
+              required
+              InputProps={{
+                ...params.InputProps,
+                startAdornment: (
+                  <>
+                    <Inventory2
+                      sx={{
+                        ml: 1,
+                        mr: 0.5,
+                        color: "text.secondary",
+                        fontSize: 20,
+                      }}
+                    />
+
+                    {params.InputProps?.startAdornment}
+                  </>
+                ),
+              }}
+            />
+          )}
+        />
+
+        {/* ============================
+            STOCK
+        ============================ */}
+        {selectedProduct && (
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems="center"
+            sx={{
+              minWidth: {
+                md: "auto",
+              },
+              whiteSpace: "nowrap",
+            }}
+          >
+            <Chip
+              icon={<Inventory2 />}
+              label={
+                selectedStock === null
+                  ? "Stock unavailable"
+                  : `Stock: ${selectedStock}`
+              }
+              color={stockColor}
+              variant="outlined"
+              size="small"
+            />
+
+            {selectedStock !== null &&
+              Number.isInteger(numericQuantity) &&
+              numericQuantity > 0 && (
+                <Chip
+                  label={
+                    remainingAfterAdd < 0
+                      ? `Insufficient stock`
+                      : `After: ${remainingAfterAdd}`
+                  }
+                  color={
+                    remainingAfterAdd < 0
+                      ? "error"
+                      : "default"
+                  }
+                  size="small"
+                />
+              )}
+          </Stack>
+        )}
+
+        {/* ============================
+            QUANTITY
+        ============================ */}
+        <TextField
+          label="Qty"
+          type="number"
+          size="small"
+          value={quantity}
+          onChange={(e) => {
+            const value = e.target.value;
+
+            if (value === "") {
+              setQuantity("");
+              return;
+            }
+
+            const numericValue = Number(value);
+
+            if (
+              Number.isInteger(numericValue) &&
+              numericValue >= 0
+            ) {
+              setQuantity(numericValue);
+            }
+          }}
+          inputProps={{
+            min: 1,
+            step: 1,
+          }}
+          sx={{
+            width: {
+              xs: "100%",
+              md: 90,
+            },
+          }}
+        />
+
+        {/* ============================
+            SELLING PRICE
+        ============================ */}
+        <TextField
+          label="Selling Price"
+          type="number"
+          size="small"
+          value={sellingPrice}
+          onChange={(e) => {
+            const value = e.target.value;
+
+            // Allow empty input
+            if (value === "") {
+              setSellingPrice("");
+              return;
+            }
+
+            // Allow only up to 2 decimal places
+            if (
+              /^\d*(\.\d{0,2})?$/.test(value)
+            ) {
+              setSellingPrice(value);
+            }
+          }}
+          inputProps={{
+            min: 0,
+            step: "0.01",
+          }}
+          sx={{
+            width: {
+              xs: "100%",
+              md: 145,
+            },
+          }}
+        />
+
+        {/* ============================
+            ADD ITEM
+        ============================ */}
+        <Button
+          variant="contained"
+          startIcon={<AddShoppingCart />}
+          onClick={onAddItem}
+          sx={{
+            minWidth: {
+              xs: "100%",
+              md: 145,
+            },
+            height: 40,
+            whiteSpace: "nowrap",
           }}
         >
-          <AddShoppingCartRoundedIcon fontSize="small" />
-        </Box>
-      </Box>
+          Add Item
+        </Button>
+      </Stack>
 
-      {/* INPUTS */}
-
-      <Grid container spacing={1.5}>
-        {/* CUSTOMER */}
-
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Autocomplete
-            options={customers}
-            value={selectedCustomer}
-            onChange={(event, value) => {
-              setSelectedCustomer(value);
-            }}
-            getOptionLabel={(option) => option?.name || ""}
-            isOptionEqualToValue={(option, value) =>
-              Number(option?.id) === Number(value?.id)
-            }
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Customer"
-                placeholder="Select customer"
-                fullWidth
-                size="small"
-              />
-            )}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 1.5,
-                backgroundColor: COLORS.white,
-              },
-
-              "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline":
-                {
-                  borderColor: COLORS.primary,
-                },
-
-              "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
-                {
-                  borderColor: COLORS.primary,
-                  borderWidth: 1.5,
-                },
-            }}
-          />
-        </Grid>
-
-        {/* PRODUCT */}
-
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Autocomplete
-            options={products}
-            value={selectedProduct}
-            onChange={(event, value) => {
-              setSelectedProduct(value);
-
-              if (value) {
-                setSellingPrice("");
-              } else {
-                setSellingPrice("");
-              }
-            }}
-            getOptionLabel={(option) => option?.name || ""}
-            isOptionEqualToValue={(option, value) =>
-              Number(option?.id) === Number(value?.id)
-            }
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Product"
-                placeholder="Select product"
-                fullWidth
-                size="small"
-              />
-            )}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 1.5,
-                backgroundColor: COLORS.white,
-              },
-
-              "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline":
-                {
-                  borderColor: COLORS.primary,
-                },
-
-              "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
-                {
-                  borderColor: COLORS.primary,
-                  borderWidth: 1.5,
-                },
-            }}
-          />
-        </Grid>
-
-        {/* SELLING PRICE */}
-
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-          <TextField
-            fullWidth
-            size="small"
-            label="Selling Price"
-            type="number"
-            value={sellingPrice}
-            onChange={(event) => {
-              setSellingPrice(event.target.value);
-            }}
-            placeholder="Enter price"
-            inputProps={{
-              min: 0,
-              step: "0.01",
-            }}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 1.5,
-              },
-
-              "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline":
-                {
-                  borderColor: COLORS.primary,
-                },
-
-              "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
-                {
-                  borderColor: COLORS.primary,
-                  borderWidth: 1.5,
-                },
-            }}
-          />
-        </Grid>
-
-        {/* QUANTITY */}
-
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <TextField
-            fullWidth
-            size="small"
-            label="Quantity"
-            type="number"
-            value={quantity}
-            onChange={(event) => {
-              setQuantity(event.target.value);
-            }}
-            inputProps={{
-              min: 1,
-              step: 1,
-            }}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 1.5,
-              },
-
-              "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline":
-                {
-                  borderColor: COLORS.primary,
-                },
-
-              "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
-                {
-                  borderColor: COLORS.primary,
-                  borderWidth: 1.5,
-                },
-            }}
-          />
-        </Grid>
-
-        {/* ADD ITEM */}
-
-        <Grid size={{ xs: 12, md: 5 }}>
-          <Box
-            sx={{
-              height: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: {
-                xs: "stretch",
-                md: "flex-end",
-              },
-            }}
+      {/* ============================
+          SELECTED PRODUCT INFO
+      ============================ */}
+      {selectedProduct && (
+        <Box
+          sx={{
+            mt: 1,
+            px: 1,
+          }}
+        >
+          <Typography
+            variant="caption"
+            color="text.secondary"
           >
-            <Button
-              variant="contained"
-              startIcon={<AddShoppingCartRoundedIcon />}
-              onClick={onAddItem}
-              fullWidth
-              sx={{
-                height: 40,
-                maxWidth: {
-                  xs: "100%",
-                  md: 220,
-                },
-                borderRadius: 1.5,
-                textTransform: "none",
-                fontSize: 13,
-                fontWeight: 700,
-                backgroundColor: COLORS.primary,
-                boxShadow: "none",
-
-                "&:hover": {
-                  backgroundColor: "#4338CA",
-                  boxShadow: "none",
-                },
-              }}
-            >
-              Add Item
-            </Button>
-          </Box>
-        </Grid>
-      </Grid>
-    </Paper>
+            Selected product:{" "}
+            <strong>
+              {selectedProduct.name}
+            </strong>
+            {selectedProduct.unit
+              ? ` • Unit: ${selectedProduct.unit}`
+              : ""}
+          </Typography>
+        </Box>
+      )}
+    </Box>
   );
 }
 

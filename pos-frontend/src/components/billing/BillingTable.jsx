@@ -1,432 +1,266 @@
+import { useState } from "react";
+
 import {
-  Box,
-  CircularProgress,
-  IconButton,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-  Tooltip,
+Paper,
+Table,
+TableBody,
+TableCell,
+TableContainer,
+TableHead,
+TableRow,
+IconButton,
+Tooltip,
+Typography,
+Box,
+CircularProgress,
 } from "@mui/material";
 
-import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
-import ReceiptLongRoundedIcon from "@mui/icons-material/ReceiptLongRounded";
+import {
+Delete,
+} from "@mui/icons-material";
 
-import { deleteInvoiceItem } from "../../services/invoiceService";
+import {
+deleteInvoiceItem,
+} from "../../services/invoiceService";
 
-const COLORS = {
-  primary: "#4F46E5",
-  primaryLight: "#EEF2FF",
-  text: "#0F172A",
-  secondary: "#64748B",
-  background: "#F7F7F5",
-  border: "#E2E8F0",
-  white: "#FFFFFF",
-};
+import ConfirmationDialog from "../common/ConfirmationDialog";
 
 function BillingTable({
-  loading,
-  cart = [],
-  invoiceId,
-  reloadInvoice,
+loading,
+cart = [],
+invoiceId,
+reloadInvoice,
 }) {
-  const handleDelete = async (item) => {
-    if (!item?.id) return;
+const [deleteDialog, setDeleteDialog] = useState({
+open: false,
+itemId: null,
+itemName: "",
+});
 
-    try {
-      await deleteInvoiceItem(item.id);
+const [deleting, setDeleting] = useState(false);
 
-      if (invoiceId && reloadInvoice) {
-        await reloadInvoice(invoiceId);
-      }
-    } catch (err) {
-      console.error(err);
+const openDeleteDialog = (item) => {
+setDeleteDialog({
+open: true,
+itemId: item.id,
+itemName:
+item.name ||
+item.product_name ||
+"this item",
+});
+};
 
-      window.dispatchEvent(
-        new CustomEvent("billing-error", {
-          detail:
-            err.response?.data?.message ||
-            "Unable to remove item.",
-        })
-      );
-    }
-  };
+const closeDeleteDialog = () => {
+if (deleting) return;
 
-  if (loading) {
-    return (
-      <Paper
-        elevation={0}
-        sx={{
-          minHeight: 320,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          border: `1px solid ${COLORS.border}`,
-          borderRadius: 2.5,
-          backgroundColor: COLORS.white,
-        }}
-      >
-        <CircularProgress
-          size={28}
-          thickness={4}
-          sx={{
-            color: COLORS.primary,
-          }}
-        />
-      </Paper>
-    );
+setDeleteDialog({
+  open: false,
+  itemId: null,
+  itemName: "",
+});
+
+};
+
+const handleConfirmDelete = async () => {
+if (!deleteDialog.itemId || deleting) {
+return;
+}
+
+try {
+  setDeleting(true);
+
+  await deleteInvoiceItem(
+    deleteDialog.itemId
+  );
+
+  if (invoiceId && reloadInvoice) {
+    await reloadInvoice(invoiceId);
   }
 
-  return (
-    <TableContainer
-      component={Paper}
-      elevation={0}
-      sx={{
-        border: `1px solid ${COLORS.border}`,
-        borderRadius: 2.5,
-        overflow: "hidden",
-        backgroundColor: COLORS.white,
-      }}
-    >
-      {/* TABLE HEADER */}
+  closeDeleteDialog();
+} catch (err) {
+  console.error(
+    "Failed to delete invoice item:",
+    err
+  );
 
-      <Box
-        sx={{
-          px: { xs: 1.75, md: 2 },
-          py: 1.5,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          borderBottom: `1px solid ${COLORS.border}`,
-          backgroundColor: COLORS.white,
-        }}
-      >
-        <Box>
-          <Typography
-            sx={{
-              fontSize: 14,
-              fontWeight: 700,
-              color: COLORS.text,
-            }}
-          >
-            Invoice Items
-          </Typography>
+  window.dispatchEvent(
+    new CustomEvent("billing-error", {
+      detail:
+        err.response?.data?.message ||
+        "Unable to remove invoice item.",
+    })
+  );
+} finally {
+  setDeleting(false);
+}
 
-          <Typography
-            sx={{
-              mt: 0.25,
-              fontSize: 11.5,
-              color: COLORS.secondary,
-            }}
-          >
-            Products currently added to this invoice
-          </Typography>
-        </Box>
+};
 
-        <Box
-          sx={{
-            px: 1.1,
-            py: 0.55,
-            borderRadius: 1.25,
-            backgroundColor: COLORS.primaryLight,
-            color: COLORS.primary,
-          }}
-        >
-          <Typography
+return (
+<>
+<TableContainer
+component={Paper}
+elevation={0}
+sx={{
+width: "100%",
+border: "1px solid",
+borderColor: "divider",
+borderRadius: 2,
+overflowX: "auto",
+}}
+>
+<Table
+size="small"
+sx={{
+minWidth: 700,
+}}
+> <TableHead> <TableRow>
+<TableCell
+sx={{
+fontWeight: 700,
+}}
+>
+Product </TableCell>
+          <TableCell
+            align="center"
             sx={{
-              fontSize: 11,
               fontWeight: 700,
             }}
           >
-            {cart.length}{" "}
-            {cart.length === 1 ? "item" : "items"}
-          </Typography>
-        </Box>
-      </Box>
+            Quantity
+          </TableCell>
 
-      {/* TABLE */}
-
-      <Table
-        sx={{
-          minWidth: 650,
-        }}
-      >
-        <TableHead>
-          <TableRow
+          <TableCell
+            align="right"
             sx={{
-              backgroundColor: COLORS.background,
+              fontWeight: 700,
             }}
           >
-            <TableCell
-              sx={{
-                py: 1.2,
-                fontSize: 10.5,
-                fontWeight: 700,
-                color: COLORS.secondary,
-                textTransform: "uppercase",
-                letterSpacing: 0.4,
-                borderBottom: `1px solid ${COLORS.border}`,
-              }}
-            >
-              Product
-            </TableCell>
+            Selling Price
+          </TableCell>
 
-            <TableCell
-              align="right"
-              sx={{
-                py: 1.2,
-                fontSize: 10.5,
-                fontWeight: 700,
-                color: COLORS.secondary,
-                textTransform: "uppercase",
-                letterSpacing: 0.4,
-                borderBottom: `1px solid ${COLORS.border}`,
-              }}
-            >
-              Price
-            </TableCell>
+          <TableCell
+            align="right"
+            sx={{
+              fontWeight: 700,
+            }}
+          >
+            Total
+          </TableCell>
 
+          <TableCell
+            align="center"
+            sx={{
+              fontWeight: 700,
+              width: 70,
+            }}
+          >
+            Action
+          </TableCell>
+        </TableRow>
+      </TableHead>
+
+      <TableBody>
+        {loading ? (
+          <TableRow>
             <TableCell
+              colSpan={5}
               align="center"
-              sx={{
-                py: 1.2,
-                fontSize: 10.5,
-                fontWeight: 700,
-                color: COLORS.secondary,
-                textTransform: "uppercase",
-                letterSpacing: 0.4,
-                borderBottom: `1px solid ${COLORS.border}`,
-              }}
+              sx={{ py: 5 }}
             >
-              Qty
-            </TableCell>
-
-            <TableCell
-              align="right"
-              sx={{
-                py: 1.2,
-                fontSize: 10.5,
-                fontWeight: 700,
-                color: COLORS.secondary,
-                textTransform: "uppercase",
-                letterSpacing: 0.4,
-                borderBottom: `1px solid ${COLORS.border}`,
-              }}
-            >
-              Total
-            </TableCell>
-
-            <TableCell
-              align="center"
-              sx={{
-                width: 60,
-                py: 1.2,
-                fontSize: 10.5,
-                fontWeight: 700,
-                color: COLORS.secondary,
-                textTransform: "uppercase",
-                letterSpacing: 0.4,
-                borderBottom: `1px solid ${COLORS.border}`,
-              }}
-            >
-              Action
+              <CircularProgress size={28} />
             </TableCell>
           </TableRow>
-        </TableHead>
-
-        <TableBody>
-          {cart.length === 0 ? (
-            <TableRow>
-              <TableCell
-                colSpan={5}
-                sx={{
-                  borderBottom: "none",
-                }}
+        ) : cart.length === 0 ? (
+          <TableRow>
+            <TableCell
+              colSpan={5}
+              align="center"
+              sx={{ py: 5 }}
+            >
+              <Typography
+                variant="body2"
+                color="text.secondary"
               >
-                <Box
-                  sx={{
-                    py: 6,
-                    px: 3,
-                    textAlign: "center",
-                  }}
+                No products added to this invoice yet.
+              </Typography>
+            </TableCell>
+          </TableRow>
+        ) : (
+          cart.map((item) => (
+            <TableRow
+              key={item.id}
+              hover
+            >
+              <TableCell>
+                <Typography
+                  variant="body2"
+                  fontWeight={600}
                 >
-                  <Box
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      mx: "auto",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      borderRadius: 2,
-                      backgroundColor: COLORS.primaryLight,
-                      color: COLORS.primary,
-                    }}
-                  >
-                    <ReceiptLongRoundedIcon
-                      sx={{
-                        fontSize: 25,
-                      }}
-                    />
-                  </Box>
+                  {item.name ||
+                    item.product_name ||
+                    "Unknown product"}
+                </Typography>
+              </TableCell>
 
-                  <Typography
-                    sx={{
-                      mt: 1.5,
-                      fontSize: 14,
-                      fontWeight: 700,
-                      color: COLORS.text,
-                    }}
-                  >
-                    No items added
-                  </Typography>
+              <TableCell align="center">
+                {item.quantity}
+              </TableCell>
 
-                  <Typography
-                    sx={{
-                      mt: 0.5,
-                      fontSize: 12,
-                      color: COLORS.secondary,
-                      maxWidth: 340,
-                      mx: "auto",
-                      lineHeight: 1.5,
-                    }}
+              <TableCell align="right">
+                Rs.{" "}
+                {Number(
+                  item.price ??
+                    item.selling_price ??
+                    0
+                ).toFixed(2)}
+              </TableCell>
+
+              <TableCell align="right">
+                <Typography fontWeight={600}>
+                  Rs.{" "}
+                  {Number(
+                    item.total || 0
+                  ).toFixed(2)}
+                </Typography>
+              </TableCell>
+
+              <TableCell align="center">
+                <Tooltip title="Remove item">
+                  <IconButton
+                    color="error"
+                    size="small"
+                    onClick={() =>
+                      openDeleteDialog(item)
+                    }
                   >
-                    Select a product above, enter the
-                    selling price and quantity, then add
-                    it to the invoice.
-                  </Typography>
-                </Box>
+                    <Delete fontSize="small" />
+                  </IconButton>
+                </Tooltip>
               </TableCell>
             </TableRow>
-          ) : (
-            cart.map((item) => (
-              <TableRow
-                key={item.id}
-                hover
-                sx={{
-                  transition: "background-color 0.15s ease",
+          ))
+        )}
+      </TableBody>
+    </Table>
+  </TableContainer>
 
-                  "&:hover": {
-                    backgroundColor: "#FAFAFF",
-                  },
+  <ConfirmationDialog
+    open={deleteDialog.open}
+    title="Remove Invoice Item?"
+    message={`Are you sure you want to remove "${deleteDialog.itemName}" from this invoice?`}
+    confirmText="Remove"
+    cancelText="Keep Item"
+    confirmColor="error"
+    loading={deleting}
+    onConfirm={handleConfirmDelete}
+    onClose={closeDeleteDialog}
+  />
+</>
 
-                  "&:last-child td": {
-                    borderBottom: 0,
-                  },
-                }}
-              >
-                {/* PRODUCT */}
 
-                <TableCell
-                  sx={{
-                    py: 1.5,
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: COLORS.text,
-                  }}
-                >
-                  {item.name}
-                </TableCell>
-
-                {/* PRICE */}
-
-                <TableCell
-                  align="right"
-                  sx={{
-                    py: 1.5,
-                    fontSize: 13,
-                    color: COLORS.secondary,
-                  }}
-                >
-                  Rs.{" "}
-                  {Number(item.price || 0).toFixed(2)}
-                </TableCell>
-
-                {/* QUANTITY */}
-
-                <TableCell
-                  align="center"
-                  sx={{
-                    py: 1.5,
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "inline-flex",
-                      minWidth: 32,
-                      height: 26,
-                      px: 0.75,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      borderRadius: 1,
-                      backgroundColor: COLORS.background,
-                      border: `1px solid ${COLORS.border}`,
-                      color: COLORS.text,
-                      fontSize: 12,
-                      fontWeight: 700,
-                    }}
-                  >
-                    {item.quantity}
-                  </Box>
-                </TableCell>
-
-                {/* TOTAL */}
-
-                <TableCell
-                  align="right"
-                  sx={{
-                    py: 1.5,
-                    fontSize: 13,
-                    fontWeight: 700,
-                    color: COLORS.primary,
-                  }}
-                >
-                  Rs.{" "}
-                  {Number(item.total || 0).toFixed(2)}
-                </TableCell>
-
-                {/* DELETE */}
-
-                <TableCell
-                  align="center"
-                  sx={{
-                    py: 1.5,
-                  }}
-                >
-                  <Tooltip title="Remove item">
-                    <IconButton
-                      size="small"
-                      onClick={() => handleDelete(item)}
-                      sx={{
-                        width: 30,
-                        height: 30,
-                        color: "#DC2626",
-                        borderRadius: 1.5,
-
-                        "&:hover": {
-                          backgroundColor: "#FEF2F2",
-                        },
-                      }}
-                    >
-                      <DeleteOutlineRoundedIcon
-                        sx={{
-                          fontSize: 18,
-                        }}
-                      />
-                    </IconButton>
-                  </Tooltip>
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  );
+);
 }
 
 export default BillingTable;

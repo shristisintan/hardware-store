@@ -22,7 +22,7 @@ Edit,
 Delete,
 } from "@mui/icons-material";
 
-import ConfirmDialog from "../common/ConfirmDialog";
+import ConfirmDialog from "../common/ConfirmationDialog";
 
 function getStatus(product) {
 
