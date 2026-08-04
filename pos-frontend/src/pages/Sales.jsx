@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+
 import {
   Box,
   Paper,
@@ -18,6 +19,9 @@ import DashboardLayout from "../components/layout/DashboardLayout";
 import InvoiceHistoryTable from "../components/billing/InvoiceHistoryTable";
 import { getInvoices } from "../services/invoiceService";
 
+// ===============================
+// COLORS
+// ===============================
 const COLORS = {
   primary: "#4F46E5",
   primaryLight: "#EEF2FF",
@@ -28,11 +32,17 @@ const COLORS = {
   white: "#FFFFFF",
 };
 
+// ===============================
+// COMPONENT
+// ===============================
 function Sales() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
+  // ===============================
+  // LOAD INVOICES
+  // ===============================
   const loadInvoices = async () => {
     try {
       setLoading(true);
@@ -52,7 +62,10 @@ function Sales() {
     loadInvoices();
   }, []);
 
-  // Only finalized + non-cancelled invoices are actual sales.
+  // ===============================
+  // ACTUAL SALES
+  // Finalized + non-cancelled only
+  // ===============================
   const sales = useMemo(() => {
     return invoices.filter(
       (invoice) =>
@@ -61,10 +74,15 @@ function Sales() {
     );
   }, [invoices]);
 
+  // ===============================
+  // SEARCH
+  // ===============================
   const filteredSales = useMemo(() => {
     const query = search.trim().toLowerCase();
 
-    if (!query) return sales;
+    if (!query) {
+      return sales;
+    }
 
     return sales.filter((invoice) => {
       const invoiceNo =
@@ -84,12 +102,23 @@ function Sales() {
     });
   }, [sales, search]);
 
+  // ===============================
+  // SUMMARY
+  // ===============================
   const summary = useMemo(() => {
     return sales.reduce(
       (result, invoice) => {
-        const total = Number(invoice.grand_total || 0);
-        const paid = Number(invoice.paid_amount || 0);
-        const due = Number(invoice.due_amount || 0);
+        const total = Number(
+          invoice.grand_total || 0
+        );
+
+        const paid = Number(
+          invoice.paid_amount || 0
+        );
+
+        const due = Number(
+          invoice.due_amount || 0
+        );
 
         result.totalSales += total;
         result.paid += paid;
@@ -105,6 +134,9 @@ function Sales() {
     );
   }, [sales]);
 
+  // ===============================
+  // SUMMARY CARDS
+  // ===============================
   const cards = [
     {
       label: "Total Sales",
@@ -128,47 +160,23 @@ function Sales() {
     },
   ];
 
+  // ===============================
+  // RENDER
+  // ===============================
   return (
-    <DashboardLayout>
+    <DashboardLayout
+      title="Sales"
+      subtitle="View and manage completed sales transactions."
+    >
       <Box
         sx={{
           minHeight: "100%",
           backgroundColor: COLORS.background,
-          p: {
-            xs: 2,
-            md: 3,
-          },
         }}
       >
-        {/* HEADER */}
-
-        <Box sx={{ mb: 3 }}>
-          <Typography
-            sx={{
-              fontSize: {
-                xs: 22,
-                md: 26,
-              },
-              fontWeight: 750,
-              color: COLORS.text,
-            }}
-          >
-            Sales
-          </Typography>
-
-          <Typography
-            sx={{
-              mt: 0.5,
-              fontSize: 13,
-              color: COLORS.secondary,
-            }}
-          >
-            View and manage completed sales transactions.
-          </Typography>
-        </Box>
-
-        {/* SUMMARY CARDS */}
-
+        {/* ===============================
+            SUMMARY CARDS
+        =============================== */}
         <Box
           sx={{
             display: "grid",
@@ -191,6 +199,7 @@ function Sales() {
                 backgroundColor: COLORS.white,
               }}
             >
+              {/* ICON */}
               <Box
                 sx={{
                   width: 38,
@@ -200,13 +209,15 @@ function Sales() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  backgroundColor: COLORS.primaryLight,
+                  backgroundColor:
+                    COLORS.primaryLight,
                   color: COLORS.primary,
                 }}
               >
                 {card.icon}
               </Box>
 
+              {/* LABEL */}
               <Typography
                 sx={{
                   fontSize: 11,
@@ -217,6 +228,7 @@ function Sales() {
                 {card.label}
               </Typography>
 
+              {/* VALUE */}
               <Typography
                 sx={{
                   fontSize: {
@@ -233,8 +245,9 @@ function Sales() {
           ))}
         </Box>
 
-        {/* SEARCH */}
-
+        {/* ===============================
+            SEARCH
+        =============================== */}
         <Paper
           elevation={0}
           sx={{
@@ -267,6 +280,7 @@ function Sales() {
             }}
             sx={{
               maxWidth: 500,
+
               "& .MuiOutlinedInput-root": {
                 borderRadius: 2,
                 backgroundColor: COLORS.white,
@@ -275,8 +289,9 @@ function Sales() {
           />
         </Paper>
 
-        {/* TABLE */}
-
+        {/* ===============================
+            TABLE
+        =============================== */}
         {loading ? (
           <Paper
             elevation={0}
